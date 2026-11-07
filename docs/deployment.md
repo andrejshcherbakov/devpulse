@@ -26,9 +26,11 @@ A custom domain remains optional. When using `app.<domain>` and
 `api.<domain>` directly, set `COOKIE_DOMAIN=.<domain>` so the cookie is shared
 between the sibling subdomains.
 
-The GitHub Student Developer Pack Heroku credit available in November 2026 is
-enough for Eco + Essential-0 + Mini. Eco sleeps after inactivity; use Basic for
-an always-on public service and pay the amount not covered by the credit.
+The $13 monthly GitHub Student Developer Pack Heroku credit is enough for Eco +
+Essential-0 + Mini. GitHub and Heroku currently show different credit periods,
+so treat the duration and billing terms displayed during activation as the
+source of truth. Eco sleeps after inactivity; use Basic for an always-on public
+service and pay the amount not covered by the credit.
 
 ---
 
@@ -123,8 +125,8 @@ Import the same GitHub repository as a Vercel project:
 2. Enable **Include source files outside of the Root Directory** because the
    dashboard imports `@devpulse/env` and `@devpulse/lib` workspace packages.
 3. Use `pnpm install --frozen-lockfile` as the install command.
-4. Use `pnpm build:web` as the build command so workspace dependencies are
-   compiled before Next.js.
+4. Use `cd ../.. && pnpm build:web` as the build command so it runs from the
+   workspace root and compiles dependencies before Next.js.
 5. Set `DEVPULSE_BACKEND_ORIGIN=https://<app>.herokuapp.com`.
 6. Set `NEXT_PUBLIC_API_URL=https://<project>.vercel.app/api/v1`.
 
