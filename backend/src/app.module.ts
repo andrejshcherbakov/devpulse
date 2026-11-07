@@ -11,6 +11,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { ApiKey } from './api-keys/entities/api-key.entity';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
+import { HealthModule } from './health/health.module';
 import { Project } from './projects/entities/project.entity';
 import { ProjectsModule } from './projects/projects.module';
 import { RedisModule } from './redis/redis.module';
@@ -33,6 +34,8 @@ const throttlerProvider: Provider = {
       isGlobal: true,
       envFilePath: '../.env',
     }),
+
+    HealthModule,
 
     ThrottlerModule.forRoot([
       {

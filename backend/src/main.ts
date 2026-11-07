@@ -1,5 +1,6 @@
 import { BadRequestException, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { type NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
@@ -12,11 +13,29 @@ import { setupApiDocs } from './docs/setup-api-docs';
 import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  if (env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
 
   app.use(helmet());
 
   const corsOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+
+  for (const origin of corsOrigins) {
+    const parsedOrigin = new URL(origin);
+    const isOriginOnly = parsedOrigin.href === `${parsedOrigin.origin}/`;
+    const isSecure = parsedOrigin.protocol === 'https:';
+    const isLocalDevelopment =
+      env.NODE_ENV !== 'production' &&
+      parsedOrigin.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(parsedOrigin.hostname);
+
+    if (!isOriginOnly || (!isSecure && !isLocalDevelopment)) {
+      throw new Error(`Invalid CORS_ORIGIN entry: ${origin}`);
+    }
+  }
 
   app.enableCors({
     origin: corsOrigins,
@@ -49,6 +68,7 @@ async function bootstrap(): Promise<void> {
 
   setupApiDocs(app, { exposeDevelopmentDocs: env.NODE_ENV !== 'production' });
 
+  app.enableShutdownHooks();
   await app.listen(env.PORT);
 }
 

@@ -7,7 +7,7 @@ import { User } from './user.entity';
 @Entity('user_encryption')
 export class UserEncryption extends AppBaseEntity<'encryption'> {
   @OneToOne(() => User, (user) => user.encryption, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   public user!: User;
 
   @Column({ type: 'text', nullable: true })
