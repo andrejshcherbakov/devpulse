@@ -13,22 +13,20 @@ export const env = createEnv({
     PORT: z.coerce.number().default(3000),
 
     // PostgreSQL
-    POSTGRES_USER: z.string().min(1),
-    POSTGRES_PASSWORD: z.string().min(1),
-    POSTGRES_DB: z.string().min(1),
     DATABASE_URL: z.string().url(),
 
     // Redis
     REDIS_URL: z.string().url(),
 
     // JWT
-    JWT_SECRET: z.string().min(1),
+    JWT_SECRET: z.string().min(32),
     JWT_EXPIRES_IN: z.string().default('7d'),
 
     CORS_ORIGIN: z.string().default('http://localhost:3001'),
+    COOKIE_DOMAIN: z.string().trim().min(1).optional(),
 
-    RESEND_API_KEY: z.string(),
-    EMAIL_FROM: z.string().email(),
+    RESEND_API_KEY: z.string().min(1),
+    EMAIL_FROM: z.string().min(3),
   },
 
   runtimeEnv: process.env,

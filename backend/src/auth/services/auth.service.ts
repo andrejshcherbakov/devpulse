@@ -56,6 +56,7 @@ const AUTH_COOKIE_OPTIONS: CookieOptions = {
   secure: env.NODE_ENV === 'production',
   sameSite: 'lax',
   path: '/',
+  ...(env.COOKIE_DOMAIN === undefined ? {} : { domain: env.COOKIE_DOMAIN }),
 };
 
 const SIGNUP_SUCCESS_MESSAGE = 'A verification code has been sent to your email.';

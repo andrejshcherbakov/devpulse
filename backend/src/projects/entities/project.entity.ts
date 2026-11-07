@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from 'typeorm';
 
 import { type TypeId } from '@devpulse/lib';
 
@@ -22,6 +22,7 @@ export class Project extends AppBaseEntity<'projects'> {
     nullable: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id' })
   public user!: User;
 
   @Column({ name: 'user_id', type: 'varchar', length: 40 })

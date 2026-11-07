@@ -3,13 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": ">=20.19.0"
+    "node": "24.x"
   },
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r --if-present lint:fix",
     "build": "pnpm -r build",
+    "build:backend": "pnpm --filter backend... build",
+    "build:web": "pnpm --filter web... build",
+    "heroku-postbuild": "pnpm build:backend",
+    "start": "pnpm --filter backend start:prod",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md,css}\" --ignore-path .gitignore"
   },
   "devDependencies": {

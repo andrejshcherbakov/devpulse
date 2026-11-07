@@ -24,6 +24,7 @@ export class User extends AppBaseEntity<'users'> {
     name: 'display_name',
     length: 100,
     nullable: true,
+    unique: true,
   })
   public displayName!: string;
 
