@@ -3,7 +3,7 @@
   "name": "devpulse",
   "displayName": "DevPulse — Worklog & Standup",
   "description": "Privacy-controlled developer activity analytics and evidence-based standup drafts for self-hosted DevPulse.",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "publisher": "andrejshcherbakov",
   "license": "SEE LICENSE IN LICENSE",
   "pricing": "Free",
