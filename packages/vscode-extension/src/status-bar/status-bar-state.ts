@@ -9,8 +9,11 @@ export interface TodayStats {
 export type ActivityStatus = 'active' | 'idle';
 export type TrackingBlockReason =
   | 'initializing'
+  | 'tracking-disabled'
   | 'workspace-untrusted'
   | 'telemetry-disabled'
+  | 'missing-key'
+  | 'api-unconfigured'
   | 'no-workspace'
   | 'no-git'
   | 'startup-error';

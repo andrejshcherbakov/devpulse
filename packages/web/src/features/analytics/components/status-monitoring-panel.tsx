@@ -119,7 +119,7 @@ export function StatusMonitoringPanel(): JSX.Element | null {
             return (
               <div
                 key={srv.name}
-                className="flex min-h-24 flex-col justify-between rounded-xl border border-border bg-white/[0.02] p-3.5"
+                className="flex min-h-24 flex-col justify-between rounded-xl border border-border bg-white/2 p-3.5"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-subtle">{srv.name}</span>

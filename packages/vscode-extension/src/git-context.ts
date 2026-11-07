@@ -34,16 +34,25 @@ function resolveWorkspaceName(folder: vscode.WorkspaceFolder | null): string | n
   return null;
 }
 
-function stripUrlCredentials(url: string): string {
-  if (!/^https?:\/\//i.test(url)) return url;
+function sanitizeRemoteUrl(url: string): string | null {
+  const value = url.trim();
+
+  if (/^[^/\\\s]+@[^:\s]+:.+/.test(value)) {
+    return value.replace(/^[^@]+@/, '');
+  }
+
+  if (!/^[a-z][a-z\d+.-]*:\/\//i.test(value)) return null;
+
   try {
-    const parsed = new URL(url);
-    if (!parsed.username && !parsed.password) return url;
+    const parsed = new URL(value);
+    if (parsed.protocol === 'file:') return null;
     parsed.username = '';
     parsed.password = '';
+    parsed.search = '';
+    parsed.hash = '';
     return parsed.toString();
   } catch {
-    return url;
+    return null;
   }
 }
 
@@ -153,7 +162,7 @@ export class GitContextProvider implements vscode.Disposable {
 
       this.context = nextContext;
       this.log?.info(
-        `workspace="${nextContext.workspaceName ?? 'n/a'}" branch="${nextContext.gitBranch ?? 'n/a'}" remote="${nextContext.gitRemoteUrl ?? 'n/a'}"`,
+        `workspace="${nextContext.workspaceName ?? 'n/a'}" branch="${nextContext.gitBranch ?? 'n/a'}"`,
       );
       this.emitter.fire(nextContext);
     } catch (error) {
@@ -169,9 +178,7 @@ export class GitContextProvider implements vscode.Disposable {
     this.watchedGitDir = gitDir;
     this.watchedCommonDir = commonDir;
 
-    this.log?.info(
-      `resetGitWatchers: gitDir="${gitDir ?? 'n/a'}" commonDir="${commonDir ?? 'n/a'}"`,
-    );
+    this.log?.info(`resetGitWatchers: ${gitDir === null ? 'disabled' : 'enabled'}`);
 
     if (gitDir === null) return;
 
@@ -244,9 +251,7 @@ export class GitContextProvider implements vscode.Disposable {
     this.forceGitRefresh = false;
     this.initialized = true;
 
-    this.log?.info(
-      `detectContext: folder="${folder?.name ?? 'n/a'}" path="${workspaceFolderPath ?? 'n/a'}"`,
-    );
+    this.log?.info(`detectContext: folder="${folder?.name ?? 'n/a'}"`);
 
     if (workspaceFolderPath === null) {
       return {
@@ -285,7 +290,7 @@ export class GitContextProvider implements vscode.Disposable {
       return value.length > 0 ? value : null;
     } catch (error) {
       if (isUnexpectedGitError(error)) {
-        this.log?.debug(`git ${args.join(' ')} failed in ${folderPath}: ${String(error)}`);
+        this.log?.debug(`git ${args.join(' ')} failed: ${String(error)}`);
       }
       return null;
     }
@@ -297,7 +302,7 @@ export class GitContextProvider implements vscode.Disposable {
 
   private async resolveGitRemoteUrl(folderPath: string): Promise<string | null> {
     const originUrl = await this.runGit(folderPath, ['remote', 'get-url', 'origin']);
-    if (originUrl !== null) return stripUrlCredentials(originUrl);
+    if (originUrl !== null) return sanitizeRemoteUrl(originUrl);
 
     const remotes = await this.runGit(folderPath, ['remote']);
     if (remotes === null) return null;
@@ -305,7 +310,7 @@ export class GitContextProvider implements vscode.Disposable {
     if (!first) return null;
 
     const url = await this.runGit(folderPath, ['remote', 'get-url', first]);
-    return url === null ? null : stripUrlCredentials(url);
+    return url === null ? null : sanitizeRemoteUrl(url);
   }
 
   private async resolveGitDir(folderPath: string): Promise<string | null> {

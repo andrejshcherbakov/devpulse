@@ -89,6 +89,7 @@ export class DayFactsService {
       this.addFiles(files, session);
 
       for (const commit of session.commits) {
+        if (commit.message.trim() === '') continue;
         commits.set(commit.hash, {
           message: sanitizeText(commit.message.split('\n', 1)[0] ?? '', MAX_COMMIT_MESSAGE_LENGTH),
           insertions: commit.insertions,

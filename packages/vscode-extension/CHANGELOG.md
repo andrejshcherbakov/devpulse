@@ -6,8 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-11-07
+
+### Added
+
+- **Privacy controls** — independent settings for file paths, terminal
+  commands, commit messages, and AI-assistance detection.
+- **Marketplace metadata** — explicit Workspace Trust and virtual-workspace
+  capabilities, support documentation, and self-hosted onboarding.
+
 ### Changed
 
+- **Secure endpoints** — remote services require HTTPS; plain HTTP is accepted
+  only for local development.
+- **Persistent pause** — a user pause now survives VS Code restarts.
+- **Minimal VSIX** — the package contains only the bundled runtime and public
+  documentation.
+- **Relative terminal context** — absolute working directories are no longer
+  transmitted.
 - **Tracker diagnostics** — the status bar now distinguishes active, idle,
   paused, locally blocked, and sync-only failures, with a concrete reason in
   the tooltip and diagnostics output.

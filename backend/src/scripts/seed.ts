@@ -52,7 +52,7 @@ async function runSeed(): Promise<void> {
     const demoProject = new Project();
     demoProject.id = typeIdGenerator('projects');
     demoProject.name = 'DevPulse Core';
-    demoProject.gitRemoteUrl = 'github.com:Envil2001/devpulse.git';
+    demoProject.gitRemoteUrl = 'github.com:andrejshcherbakov/devpulse.git';
     demoProject.user = savedUser;
     demoProject.userId = savedUser.id;
 

@@ -50,6 +50,9 @@ web_modules/
 # Optional npm cache directory
 .npm
 
+# Local pnpm store
+.pnpm-store/
+
 # Optional eslint cache
 .eslintcache
 

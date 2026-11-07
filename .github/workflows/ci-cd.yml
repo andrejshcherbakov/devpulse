@@ -34,6 +34,9 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
 
+      - name: Validate VS Code Marketplace package
+        run: pnpm --dir packages/vscode-extension exec vsce package --out /tmp/devpulse.vsix --no-dependencies
+
       - name: Run Typecheck
         run: pnpm typecheck
 

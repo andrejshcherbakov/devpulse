@@ -1,10 +1,24 @@
+import path from 'node:path';
+
 import * as vscode from 'vscode';
+
+import { sanitizeCommand } from './command-sanitizer.js';
 
 export interface TerminalCommandEvent {
   command: string;
   cwd: string | null;
   exitCode: number | null;
   durationMs: number;
+}
+
+function toWorkspaceRelativeCwd(uri: vscode.Uri | undefined): string | null {
+  if (uri?.scheme !== 'file') return null;
+  const folder = vscode.workspace.getWorkspaceFolder(uri);
+  if (folder === undefined) return null;
+
+  const relative = path.relative(folder.uri.fsPath, uri.fsPath);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  return relative === '' ? '.' : relative.split(path.sep).join('/');
 }
 
 export class TerminalMonitor implements vscode.Disposable {
@@ -32,7 +46,7 @@ export class TerminalMonitor implements vscode.Disposable {
     if (!command) return;
 
     this.startedAt.set(event.execution, Date.now());
-    this.log?.info(`started: ${command}`);
+    this.log?.info('terminal command started');
   }
 
   private onEnd(event: vscode.TerminalShellExecutionEndEvent): void {
@@ -47,10 +61,12 @@ export class TerminalMonitor implements vscode.Disposable {
 
     const durationMs = Math.max(0, finishedAt - startedAt);
 
-    const cwd = event.execution.cwd?.fsPath ?? null;
+    const cwd = toWorkspaceRelativeCwd(event.execution.cwd);
 
+    const sanitizedCommand = sanitizeCommand(command);
+    const safeCommand = sanitizedCommand === '' ? '[command omitted]' : sanitizedCommand;
     this.log?.info(
-      `finished: ${command} (exit=${String(event.exitCode ?? 'n/a')}, ${String(durationMs)}ms)`,
+      `finished: ${safeCommand} (exit=${String(event.exitCode ?? 'n/a')}, ${String(durationMs)}ms)`,
     );
 
     this.emitter.fire({

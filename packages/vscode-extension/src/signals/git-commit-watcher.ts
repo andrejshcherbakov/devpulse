@@ -112,7 +112,9 @@ export class GitCommitWatcher implements vscode.Disposable {
       }
 
       this.lastHash = result.hash;
-      this.log?.info(`new commit ${result.hash.slice(0, 7)}: ${result.message.slice(0, 60)}`);
+      this.log?.info(
+        `new commit ${result.hash.slice(0, 7)} (${String(result.filesChanged)} files)`,
+      );
       this.emitter.fire(result);
     } finally {
       this.isProcessing = false;
