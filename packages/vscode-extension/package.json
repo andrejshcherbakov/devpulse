@@ -1,20 +1,21 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "devpulse",
-  "displayName": "DevPulse",
-  "description": "Automatic worklog and standup draft generator for developers. Tracks coding activity, git commits, and terminal commands locally — then uses AI to write your daily report.",
-  "version": "0.0.1",
-  "publisher": "devpulse",
-  "license": "MIT",
+  "displayName": "DevPulse — Worklog & Standup",
+  "description": "Privacy-controlled developer activity analytics and evidence-based standup drafts for self-hosted DevPulse.",
+  "version": "0.1.0",
+  "publisher": "andrejshcherbakov",
+  "license": "SEE LICENSE IN LICENSE",
+  "pricing": "Free",
   "icon": "images/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Envil2001/devpulse"
+    "url": "https://github.com/andrejshcherbakov/devpulse"
   },
   "bugs": {
-    "url": "https://github.com/Envil2001/devpulse/issues"
+    "url": "https://github.com/andrejshcherbakov/devpulse/issues"
   },
-  "homepage": "https://github.com/Envil2001/devpulse#readme",
+  "homepage": "https://github.com/andrejshcherbakov/devpulse#readme",
   "keywords": [
     "time tracking",
     "standup",
@@ -36,6 +37,19 @@
   },
   "engines": {
     "vscode": "^1.93.0"
+  },
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "DevPulse reads Git metadata and observes workspace activity, so it runs only after the workspace is trusted."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "DevPulse requires a local or remote filesystem workspace with Git and terminal APIs."
+    }
   },
   "activationEvents": [
     "onStartupFinished"
@@ -83,17 +97,81 @@
     "configuration": {
       "title": "DevPulse",
       "properties": {
+        "devpulse.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable DevPulse activity tracking after an API key and secure API URL are configured.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
+        },
         "devpulse.apiUrl": {
           "type": "string",
-          "default": "http://localhost:3000/api/v1",
-          "description": "DevPulse backend base URL (example: http://localhost:3000/api/v1)",
-          "scope": "machine"
+          "default": "",
+          "description": "DevPulse backend base URL. HTTPS is required except for localhost.",
+          "examples": [
+            "http://localhost:3000/api/v1",
+            "https://devpulse.example.com/api/v1"
+          ],
+          "scope": "machine",
+          "tags": [
+            "usesOnlineServices"
+          ]
         },
         "devpulse.dashboardUrl": {
           "type": "string",
-          "default": "http://localhost:3001",
-          "description": "DevPulse dashboard URL (used by quick-menu links)",
-          "scope": "machine"
+          "default": "",
+          "description": "DevPulse dashboard URL used by quick-menu links. HTTPS is required except for localhost.",
+          "examples": [
+            "http://localhost:3001",
+            "https://devpulse.example.com"
+          ],
+          "scope": "machine",
+          "tags": [
+            "usesOnlineServices"
+          ]
+        },
+        "devpulse.sendFilePaths": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send workspace-relative file paths for hot-file analytics. File contents and absolute file paths are never sent.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
+        },
+        "devpulse.sendTerminalCommands": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send sanitized terminal command text, workspace-relative working directory, exit code, and duration.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
+        },
+        "devpulse.sendCommitMessages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send Git commit messages for worklog context. Commit hashes and aggregate diff statistics are still sent when disabled.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
+        },
+        "devpulse.detectAiAssistance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Locally detect likely AI-assisted insertions and send only the detected tool name and an estimated-interaction marker. Inserted text is never sent.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
         }
       }
     }
@@ -101,6 +179,7 @@
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
     "compile": "node esbuild.mjs",
+    "package:vsix": "vsce package --no-dependencies",
     "watch": "node esbuild.mjs --watch",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",

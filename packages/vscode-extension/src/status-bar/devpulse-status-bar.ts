@@ -13,15 +13,18 @@ import type {
 
 const BLOCK_REASON_LABELS: Record<TrackingBlockReason, string> = {
   initializing: 'Starting tracker…',
+  'tracking-disabled': 'Tracking is disabled in DevPulse settings',
   'workspace-untrusted': 'Workspace is not trusted',
   'telemetry-disabled': 'VS Code telemetry is disabled',
+  'missing-key': 'API key is missing',
+  'api-unconfigured': 'API URL is not configured securely',
   'no-workspace': 'No workspace is open',
   'no-git': 'No Git branch detected',
   'startup-error': 'Tracker failed to start',
 };
 
 const HEALTH_LABELS: Record<Exclude<HealthStatus, 'ok'>, string> = {
-  'missing-key': 'API key is missing — activity is buffered locally',
+  'missing-key': 'API key is missing — tracking is stopped',
   'invalid-key': 'API key is invalid — activity is buffered locally',
   offline: 'Server is offline — activity is buffered locally',
   error: 'Sync failed — check the DevPulse log',

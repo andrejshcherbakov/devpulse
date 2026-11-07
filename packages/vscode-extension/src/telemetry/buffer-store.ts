@@ -50,4 +50,10 @@ export class TelemetryBufferStore {
 
     await context.globalState.update(BUFFER_KEY, envelope);
   }
+
+  public async clear(context: vscode.ExtensionContext): Promise<void> {
+    // VS Code removes a globalState entry when its value is undefined.
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    await context.globalState.update(BUFFER_KEY, undefined);
+  }
 }

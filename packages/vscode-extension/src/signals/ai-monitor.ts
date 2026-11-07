@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { shouldDetectAiAssistance } from '../configuration.js';
 import { isTrackedTextDocument } from '../utils/tracked-documents';
 
 export interface AiInteractionEvent {
@@ -86,6 +87,7 @@ export class AiMonitor implements vscode.Disposable {
   }
 
   private inspectTextChange(event: vscode.TextDocumentChangeEvent): void {
+    if (!shouldDetectAiAssistance()) return;
     if (event.reason === vscode.TextDocumentChangeReason.Undo) return;
     if (event.reason === vscode.TextDocumentChangeReason.Redo) return;
 

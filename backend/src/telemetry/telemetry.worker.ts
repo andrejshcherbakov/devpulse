@@ -548,7 +548,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     event: TelemetryEventItemDto,
     time: Date,
   ): void {
-    if (event.type !== 'git_commit' || !event.commitHash || !event.commitMessage) {
+    if (event.type !== 'git_commit' || !event.commitHash) {
       return;
     }
 
@@ -560,7 +560,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
       ...session.commits,
       {
         hash: event.commitHash,
-        message: event.commitMessage,
+        message: event.commitMessage ?? '',
         filesChanged: event.filesChanged ?? 0,
         insertions: event.insertions ?? 0,
         deletions: event.deletions ?? 0,

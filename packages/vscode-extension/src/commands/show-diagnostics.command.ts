@@ -3,6 +3,11 @@ import * as vscode from 'vscode';
 import { DEVPULSE_API_KEY_SECRET } from '../secret-keys.js';
 import type { StatusBarState } from '../status-bar/status-bar-state.js';
 
+function configuredValue(value: string | undefined): string {
+  const trimmed = value?.trim();
+  return trimmed === undefined || trimmed === '' ? '(not configured)' : trimmed;
+}
+
 export function registerShowDiagnosticsCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.LogOutputChannel,
@@ -16,13 +21,13 @@ export function registerShowDiagnosticsCommand(
     const apiUrl = config.get<string>('apiUrl');
     const dashboardUrl = config.get<string>('dashboardUrl');
 
-    const keyLabel = key ? `present (${key.slice(0, 12)}…${key.slice(-4)})` : 'missing';
+    const keyLabel = key ? 'present' : 'missing';
     const pkg = context.extension.packageJSON as { version?: string };
 
     outputChannel.info('───────────── DevPulse Diagnostics ─────────────');
     outputChannel.info(`Version: ${pkg.version ?? 'unknown'}`);
-    outputChannel.info(`API URL: ${apiUrl ?? '(env fallback)'}`);
-    outputChannel.info(`Dashboard URL: ${dashboardUrl ?? '(default)'}`);
+    outputChannel.info(`API URL: ${configuredValue(apiUrl)}`);
+    outputChannel.info(`Dashboard URL: ${configuredValue(dashboardUrl)}`);
     outputChannel.info(`API key: ${keyLabel}`);
     outputChannel.info(`Workspace trusted: ${String(vscode.workspace.isTrusted)}`);
     outputChannel.info(
@@ -32,8 +37,6 @@ export function registerShowDiagnosticsCommand(
     outputChannel.info(`Activity: ${state.activity}`);
     outputChannel.info(`Tracking blocker: ${state.blocker ?? 'none'}`);
     outputChannel.info(`Health: ${state.health}`);
-    outputChannel.info(`Machine ID: ${vscode.env.machineId}`);
-    outputChannel.info(`Session ID: ${vscode.env.sessionId}`);
     outputChannel.info('────────────────────────────────────────────────');
   });
 }

@@ -11,7 +11,10 @@ import { StatusBarState, type TrackingBlockReason } from './status-bar/status-ba
 import { TelemetryApiClient } from './telemetry/api-client.js';
 import { TelemetryBridge } from './telemetry/telemetry-bridge.js';
 import { ActivityMonitor } from './activity-monitor.js';
+import { getApiUrlConfigurationError, isTrackingEnabled } from './configuration.js';
 import { GitContextProvider } from './git-context.js';
+import { DEVPULSE_API_KEY_SECRET } from './secret-keys.js';
+import { TRACKING_PAUSED_STORAGE_KEY } from './storage-keys.js';
 
 const DEACTIVATE_FLUSH_TIMEOUT_MS = 3000;
 
@@ -22,14 +25,24 @@ interface TelemetrySession extends vscode.Disposable {
 let session: TelemetrySession | undefined;
 let extensionOutputChannel: vscode.LogOutputChannel | undefined;
 
-function canStartTelemetry(): boolean {
-  return vscode.workspace.isTrusted && vscode.env.isTelemetryEnabled;
+function canStartTelemetry(apiKeyConfigured: boolean): boolean {
+  return (
+    isTrackingEnabled() &&
+    apiKeyConfigured &&
+    getApiUrlConfigurationError() === null &&
+    vscode.workspace.isTrusted &&
+    vscode.env.isTelemetryEnabled
+  );
 }
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const outputChannel = vscode.window.createOutputChannel('DevPulse', { log: true });
   extensionOutputChannel = outputChannel;
   const state = new StatusBarState();
+  state.setPaused(context.globalState.get<boolean>(TRACKING_PAUSED_STORAGE_KEY, false));
+  const storedApiKey = await context.secrets.get(DEVPULSE_API_KEY_SECRET);
+  let apiKeyConfigured = storedApiKey !== undefined && storedApiKey.trim().length > 0;
+  if (!apiKeyConfigured) state.setHealth('missing-key');
   context.subscriptions.push(outputChannel, state);
 
   outputChannel.info('DevPulse extension is now active.');
@@ -38,6 +51,10 @@ export function activate(context: vscode.ExtensionContext): void {
     ...registerCommands(context, {
       state,
       getBridge: () => session?.bridge,
+      onApiKeyChanged: (configured) => {
+        apiKeyConfigured = configured;
+        reconcile();
+      },
       outputChannel,
     }),
   );
@@ -52,8 +69,11 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(statsPoller);
 
   const getTrackingBlocker = (): TrackingBlockReason | null => {
+    if (!isTrackingEnabled()) return 'tracking-disabled';
     if (!vscode.workspace.isTrusted) return 'workspace-untrusted';
     if (!vscode.env.isTelemetryEnabled) return 'telemetry-disabled';
+    if (!apiKeyConfigured) return 'missing-key';
+    if (getApiUrlConfigurationError() !== null) return 'api-unconfigured';
     if (!vscode.workspace.workspaceFolders?.length) return 'no-workspace';
 
     const gitContext = gitContextProvider.currentContext;
@@ -69,7 +89,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const startTelemetry = (): void => {
     if (session) return;
-    if (!canStartTelemetry()) return;
+    if (!canStartTelemetry(apiKeyConfigured)) return;
 
     const activityMonitor = new ActivityMonitor({ log: outputChannel });
     const taskMonitor = new TasksMonitor(outputChannel);
@@ -136,7 +156,7 @@ export function activate(context: vscode.ExtensionContext): void {
     session = undefined;
     if (!current) return;
 
-    outputChannel.warn('Telemetry stopping (telemetry disabled or workspace untrusted).');
+    outputChannel.warn('Telemetry stopping because a tracking prerequisite is no longer met.');
 
     try {
       current.bridge.stop();
@@ -154,7 +174,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const reconcile = (): void => {
     updateTrackingBlocker();
 
-    if (canStartTelemetry()) {
+    if (canStartTelemetry(apiKeyConfigured)) {
       startTelemetry();
     } else {
       stopTelemetry();
@@ -170,6 +190,14 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.workspace.onDidGrantWorkspaceTrust(() => {
       reconcile();
+    }),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (
+        event.affectsConfiguration('devpulse.enabled') ||
+        event.affectsConfiguration('devpulse.apiUrl')
+      ) {
+        reconcile();
+      }
     }),
   );
 

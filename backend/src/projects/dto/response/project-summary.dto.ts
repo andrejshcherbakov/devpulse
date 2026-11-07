@@ -62,7 +62,7 @@ export class ProjectSummaryDto {
   @ApiProperty({
     description: 'Git remote origin URL. Null for local repositories.',
     nullable: true,
-    example: 'https://github.com/Envil2001/devpulse.git',
+    example: 'https://github.com/andrejshcherbakov/devpulse.git',
   })
   public remote!: string | null;
 

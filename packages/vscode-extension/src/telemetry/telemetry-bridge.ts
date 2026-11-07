@@ -6,6 +6,12 @@ import * as vscode from 'vscode';
 import type { TelemetryEventDto } from '@devpulse/lib';
 
 import type { ActivityMonitor, ActivityState } from '../activity-monitor.js';
+import {
+  shouldDetectAiAssistance,
+  shouldSendCommitMessages,
+  shouldSendFilePaths,
+  shouldSendTerminalCommands,
+} from '../configuration.js';
 import type { GitContext, GitContextProvider } from '../git-context.js';
 import { type AiMonitor } from '../signals/ai-monitor.js';
 import { sanitizeCommand } from '../signals/command-sanitizer.js';
@@ -150,6 +156,14 @@ export class TelemetryBridge implements vscode.Disposable {
     }
   }
 
+  public async clearBufferedEvents(): Promise<void> {
+    this.queue = [];
+    this.inflight = null;
+    this.pendingBuffer.clear();
+    await this.savePromise;
+    await this.bufferStore.clear(this.context);
+  }
+
   private registerListeners(): void {
     this.disposables.push(
       this.activityMonitor.onDidChangeActivityState(({ state, changedAt }) => {
@@ -161,6 +175,7 @@ export class TelemetryBridge implements vscode.Disposable {
       }),
 
       this.aiMonitor.onDidDetectAi((event) => {
+        if (!shouldDetectAiAssistance()) return;
         this.enqueue(
           this.create('ai_interaction', {
             aiTool: event.tool,
@@ -183,10 +198,11 @@ export class TelemetryBridge implements vscode.Disposable {
 
       vscode.workspace.onDidSaveTextDocument((doc) => {
         if (!this.shouldTrack(doc.uri)) return;
-        this.log?.info(`file_save: ${this.toRelativePath(doc.uri)}`);
+        const filePath = shouldSendFilePaths() ? this.toRelativePath(doc.uri) : undefined;
+        this.log?.info(`file_save: ${filePath ?? '[path disabled]'}`);
         this.enqueue(
           this.create('file_save', {
-            filePath: this.toRelativePath(doc.uri),
+            filePath,
             language: doc.languageId,
           }),
         );
@@ -197,10 +213,11 @@ export class TelemetryBridge implements vscode.Disposable {
           this.enqueue(this.create('file_switch', { filePath: null }));
           return;
         }
-        this.log?.info(`file_switch: ${this.toRelativePath(editor.document.uri)}`);
+        const filePath = shouldSendFilePaths() ? this.toRelativePath(editor.document.uri) : null;
+        this.log?.info(`file_switch: ${filePath ?? '[path disabled]'}`);
         this.enqueue(
           this.create('file_switch', {
-            filePath: this.toRelativePath(editor.document.uri),
+            filePath,
             language: editor.document.languageId,
           }),
         );
@@ -213,6 +230,7 @@ export class TelemetryBridge implements vscode.Disposable {
       }),
 
       this.terminalMonitor.onDidRunCommand((event) => {
+        if (!shouldSendTerminalCommands()) return;
         const sanitized = sanitizeCommand(event.command);
         if (!sanitized) return;
 
@@ -249,11 +267,11 @@ export class TelemetryBridge implements vscode.Disposable {
         this.enqueue(
           this.create('git_commit', {
             commitHash: event.hash,
-            commitMessage: event.message,
+            commitMessage: shouldSendCommitMessages() ? event.message : undefined,
             filesChanged: event.filesChanged,
             insertions: event.insertions,
             deletions: event.deletions,
-            filesList: event.filesList,
+            filesList: shouldSendFilePaths() ? event.filesList : undefined,
           }),
         );
       }),
@@ -308,7 +326,7 @@ export class TelemetryBridge implements vscode.Disposable {
     const activeFile =
       editor !== undefined && this.shouldTrack(editor.document.uri)
         ? {
-            filePath: this.toRelativePath(editor.document.uri),
+            filePath: shouldSendFilePaths() ? this.toRelativePath(editor.document.uri) : null,
             language: editor.document.languageId,
           }
         : { filePath: null };
@@ -401,6 +419,7 @@ export class TelemetryBridge implements vscode.Disposable {
   }
 
   private enqueue(event: TelemetryEventDto): void {
+    if (this.stopped) return;
     if (this.paused) {
       this.log?.info(`skipped ${event.type}: tracking paused`);
       return;

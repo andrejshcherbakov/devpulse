@@ -1,10 +1,11 @@
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
 
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 
 import type { TelemetryEventDto } from '@devpulse/lib';
 
+import { requireApiBaseUrl } from '../configuration.js';
 import { DEVPULSE_API_KEY_SECRET } from '../secret-keys.js';
 
 import { TelemetryRequestError } from './telemetry-request-error.js';
@@ -14,8 +15,6 @@ const gzipAsync = promisify(gzip);
 const COMPRESSION_THRESHOLD_BYTES = 10_240;
 const BATCH_TIMEOUT_MS = 30_000;
 const STATS_TIMEOUT_MS = 10_000;
-const CONFIG_NAMESPACE = 'devpulse';
-const CONFIG_KEY = 'apiUrl';
 
 export class MissingApiKeyError extends Error {
   constructor() {
@@ -54,26 +53,6 @@ function isTodayStatsResponse(value: unknown): value is TodayStatsResponse {
   );
 }
 
-function trimTrailingSlashes(value: string): string {
-  let result = value.trim();
-  while (result.endsWith('/')) {
-    result = result.slice(0, -1);
-  }
-  return result;
-}
-
-function resolveApiBaseUrl(): string {
-  const config = vscode.workspace.getConfiguration(CONFIG_NAMESPACE);
-  const configured = config.get<string>(CONFIG_KEY)?.trim();
-  const url = configured ?? config.inspect<string>(CONFIG_KEY)?.defaultValue?.trim();
-
-  if (!url) {
-    throw new Error(`DevPulse: "${CONFIG_NAMESPACE}.${CONFIG_KEY}" is not configured.`);
-  }
-
-  return trimTrailingSlashes(url);
-}
-
 async function readData(response: Response): Promise<unknown> {
   const body: unknown = await response.json().catch(() => null);
 
@@ -102,7 +81,7 @@ export class TelemetryApiClient {
 
   public async postEventsBatch(payload: PostEventsPayload, signal?: AbortSignal): Promise<void> {
     const apiKey = await this.requireApiKey();
-    const url = `${resolveApiBaseUrl()}/telemetry/events/batch`;
+    const url = `${requireApiBaseUrl()}/telemetry/events/batch`;
 
     const bodyRaw = JSON.stringify(payload);
     const headers: Record<string, string> = {
@@ -146,7 +125,7 @@ export class TelemetryApiClient {
 
   public async getTodayStats(): Promise<TodayStats> {
     const apiKey = await this.requireApiKey();
-    const url = `${resolveApiBaseUrl()}/telemetry/today`;
+    const url = `${requireApiBaseUrl()}/telemetry/today`;
 
     const response = await this.request(url, {
       method: 'GET',

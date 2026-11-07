@@ -15,6 +15,7 @@ import { registerShowStatusMenuCommand } from './show-status-menu.command.js';
 interface CommandDependencies {
   state: StatusBarState;
   getBridge: () => TelemetryBridge | undefined;
+  onApiKeyChanged: (configured: boolean) => void;
   outputChannel: vscode.LogOutputChannel;
 }
 
@@ -23,12 +24,12 @@ export function registerCommands(
   deps: CommandDependencies,
 ): Array<vscode.Disposable> {
   return [
-    registerSetApiKeyCommand(context, deps.state, deps.getBridge),
-    registerClearApiKeyCommand(context, deps.state),
+    registerSetApiKeyCommand(context, deps.state, deps.getBridge, deps.onApiKeyChanged),
+    registerClearApiKeyCommand(context, deps.state, deps.getBridge, deps.onApiKeyChanged),
 
     registerShowStatusMenuCommand(deps.state),
-    registerPauseTrackingCommand(deps.state, deps.getBridge),
-    registerResumeTrackingCommand(deps.state, deps.getBridge),
+    registerPauseTrackingCommand(context, deps.state, deps.getBridge),
+    registerResumeTrackingCommand(context, deps.state, deps.getBridge),
     registerShowLogCommand(deps.outputChannel),
     registerShowDiagnosticsCommand(context, deps.outputChannel, deps.state),
     ...registerOpenDashboardCommands(),
