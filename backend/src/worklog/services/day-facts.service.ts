@@ -6,8 +6,12 @@ import { Repository } from 'typeorm';
 import { WorkSession } from '../../telemetry/entities/work-session.entity';
 import {
   DATE_FORMAT,
+  MAX_ACTIVE_FILES_PER_BRANCH,
+  MAX_BRANCH_WORK_ITEMS_PER_DAY,
   MAX_BRANCHES_PER_PROJECT,
+  MAX_CHANGED_FILES_PER_BRANCH,
   MAX_COMMIT_MESSAGE_LENGTH,
+  MAX_COMMITS_PER_BRANCH,
   MAX_COMMITS_PER_DAY,
   MAX_FILE_PATH_LENGTH,
   MAX_HOT_FILES_PER_DAY,
@@ -15,7 +19,11 @@ import {
   MAX_NAME_LENGTH,
   MAX_PROJECTS_PER_DAY,
 } from '../constants/worklog.constants';
-import type { CommandKindFacts, DayFacts } from '../interfaces/day-facts.interface';
+import type {
+  BranchWorkFacts,
+  CommandKindFacts,
+  DayFacts,
+} from '../interfaces/day-facts.interface';
 import { sanitizeText } from '../prompt/sanitize';
 import type { UtcRange } from '../utils/date-range';
 
@@ -24,6 +32,15 @@ type TerminalCommand = WorkSession['terminalCommands'][number];
 interface ProjectAccumulator {
   seconds: number;
   branches: Set<string>;
+}
+
+interface BranchWorkAccumulator {
+  project: string;
+  branch: string;
+  seconds: number;
+  files: Map<string, number>;
+  changedFiles: Set<string>;
+  commits: Map<string, BranchWorkFacts['commits'][number]>;
 }
 
 @Injectable()
@@ -69,6 +86,7 @@ export class DayFactsService {
     let aiSeconds = 0;
 
     const projects = new Map<string, ProjectAccumulator>();
+    const branchWork = new Map<string, BranchWorkAccumulator>();
     const languages = new Map<string, number>();
     const files = new Map<string, number>();
     const commits = new Map<string, DayFacts['commits'][number]>();
@@ -85,6 +103,7 @@ export class DayFactsService {
       }
 
       this.addProject(projects, session, active);
+      this.addBranchWork(branchWork, session, active);
       this.addLanguages(languages, session, active);
       this.addFiles(files, session);
 
@@ -109,6 +128,7 @@ export class DayFactsService {
       activeMinutes: Math.max(1, Math.round(activeSeconds / 60)),
       focusScore: Math.round(weightedFocus / activeSeconds),
       projects: this.formatProjects(projects),
+      branchWork: this.formatBranchWork(branchWork),
       languages: this.formatLanguages(languages),
       hotFiles: this.formatHotFiles(files),
       terminal: {
@@ -138,6 +158,56 @@ export class DayFactsService {
     }
 
     projects.set(name, entry);
+  }
+
+  private addBranchWork(
+    target: Map<string, BranchWorkAccumulator>,
+    session: WorkSession,
+    activeSeconds: number,
+  ): void {
+    if (!session.gitBranch) return;
+
+    const project = sanitizeText(session.project?.name ?? 'No project', MAX_NAME_LENGTH);
+    const branch = sanitizeText(session.gitBranch, MAX_NAME_LENGTH);
+    const key = `${project}\u0000${branch}`;
+    const entry = target.get(key) ?? {
+      project,
+      branch,
+      seconds: 0,
+      files: new Map<string, number>(),
+      changedFiles: new Set<string>(),
+      commits: new Map<string, BranchWorkFacts['commits'][number]>(),
+    };
+
+    entry.seconds += activeSeconds;
+
+    for (const [filePath, seconds] of Object.entries(session.fileSeconds)) {
+      const safePath = sanitizeText(filePath, MAX_FILE_PATH_LENGTH);
+      if (safePath !== '' && seconds > 0) {
+        this.addSeconds(entry.files, safePath, seconds);
+      }
+    }
+
+    for (const commit of session.commits) {
+      for (const filePath of commit.filesList) {
+        const safePath = sanitizeText(filePath, MAX_FILE_PATH_LENGTH);
+        if (safePath !== '') entry.changedFiles.add(safePath);
+      }
+
+      const message = sanitizeText(
+        commit.message.split('\n', 1)[0] ?? '',
+        MAX_COMMIT_MESSAGE_LENGTH,
+      );
+      if (message === '') continue;
+
+      entry.commits.set(commit.hash, {
+        message,
+        insertions: commit.insertions,
+        deletions: commit.deletions,
+      });
+    }
+
+    target.set(key, entry);
   }
 
   private addLanguages(
@@ -186,6 +256,26 @@ export class DayFactsService {
         name,
         minutes: Math.max(1, Math.round(entry.seconds / 60)),
         branches: [...entry.branches].slice(0, MAX_BRANCHES_PER_PROJECT),
+      }));
+  }
+
+  private formatBranchWork(branchWork: Map<string, BranchWorkAccumulator>): Array<BranchWorkFacts> {
+    return [...branchWork.values()]
+      .sort((first, second) => second.seconds - first.seconds)
+      .slice(0, MAX_BRANCH_WORK_ITEMS_PER_DAY)
+      .map((entry) => ({
+        project: entry.project,
+        branch: entry.branch,
+        activeMinutes: entry.seconds > 0 ? Math.max(1, Math.round(entry.seconds / 60)) : 0,
+        activeFiles: [...entry.files.entries()]
+          .sort(([, first], [, second]) => second - first)
+          .slice(0, MAX_ACTIVE_FILES_PER_BRANCH)
+          .map(([path, seconds]) => ({
+            path,
+            minutes: Math.max(1, Math.round(seconds / 60)),
+          })),
+        changedFiles: [...entry.changedFiles].slice(0, MAX_CHANGED_FILES_PER_BRANCH),
+        commits: [...entry.commits.values()].slice(-MAX_COMMITS_PER_BRANCH),
       }));
   }
 

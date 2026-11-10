@@ -78,9 +78,9 @@ export function AiWorklogCard(): JSX.Element {
                 Day-by-day summary for up to {String(MAX_RANGE_DAYS)} days
               </p>
               <p className="mt-1 max-w-xl text-xs leading-relaxed text-subtle">
-                When you generate a report, telemetry facts—including up to five sanitised relative
-                file paths per day—are sent to your configured AI provider. File contents are never
-                included.
+                The report connects active time with projects, Git branches, observed commits and
+                sanitised relative file paths. This helps describe what changed without sending file
+                contents or source-code diffs to your configured AI provider.
               </p>
             </div>
           </div>

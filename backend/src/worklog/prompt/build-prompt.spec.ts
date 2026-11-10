@@ -9,6 +9,16 @@ const FACTS: DayFacts = {
   activeMinutes: 120,
   focusScore: 85,
   projects: [],
+  branchWork: [
+    {
+      project: 'devpulse',
+      branch: 'feat/dashboard-translations',
+      activeMinutes: 80,
+      activeFiles: [{ path: 'src/locales/pl.json', minutes: 45 }],
+      changedFiles: ['src/locales/pl.json', 'src/components/locale-switcher.tsx'],
+      commits: [{ message: 'add Polish translations', insertions: 120, deletions: 2 }],
+    },
+  ],
   languages: [],
   hotFiles: [{ path: 'src/auth/auth.service.ts', minutes: 90, percent: 75 }],
   terminal: {
@@ -34,5 +44,20 @@ describe('worklog prompt', () => {
     expect(buildUserPrompt(FACTS)).toContain(
       '"hotFiles":[{"path":"src/auth/auth.service.ts","minutes":90,"percent":75}]',
     );
+  });
+
+  it('explains how branch evidence may be combined without treating names as proof', () => {
+    const prompt = buildSystemPrompt('standup', 'en');
+
+    expect(prompt).toContain('"branchWork" connects a project and branch');
+    expect(prompt).toContain('A branch name or path is only a hint');
+  });
+
+  it('includes branch-scoped time and Git evidence in the telemetry block', () => {
+    const prompt = buildUserPrompt(FACTS);
+
+    expect(prompt).toContain('"branch":"feat/dashboard-translations"');
+    expect(prompt).toContain('"changedFiles":["src/locales/pl.json"');
+    expect(prompt).toContain('"message":"add Polish translations"');
   });
 });
