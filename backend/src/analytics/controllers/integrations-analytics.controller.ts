@@ -110,7 +110,7 @@ export class IntegrationsAnalyticsController {
     @CurrentUser() user: User,
     @Query() query: GetAnalyticsRangeRequestDto,
   ): Promise<GetAnalyticsTimeseriesResponseDto> {
-    return this.dashboardAnalyticsService.getTimeseries(user.id, query);
+    return this.dashboardAnalyticsService.getTimeseries(user, query);
   }
 
   @Get('branches')

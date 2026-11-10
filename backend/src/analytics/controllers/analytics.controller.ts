@@ -59,7 +59,7 @@ export class AnalyticsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: GetAnalyticsRangeRequestDto,
   ): Promise<GetAnalyticsTimeseriesResponseDto> {
-    return this.analyticsService.getTimeseries(user.id, query);
+    return this.analyticsService.getTimeseries(user, query);
   }
 
   @Get('branches')

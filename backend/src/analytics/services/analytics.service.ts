@@ -22,6 +22,8 @@ import {
   TopLanguageRaw,
 } from '../interfaces/analytics-raw.interfaces';
 
+const LATENCY_THRESHOLD_MS = 100;
+
 @Injectable()
 export class AnalyticsService {
   private readonly logger = new Logger(AnalyticsService.name);
@@ -100,15 +102,18 @@ export class AnalyticsService {
   }
 
   public async getTimeseries(
-    userId: TypeId<'users'>,
+    user: Pick<User, 'id' | 'timezone'>,
     query: GetAnalyticsRangeRequestDto,
   ): Promise<GetAnalyticsTimeseriesResponseDto> {
-    this.logger.log(`Fetching timeseries for user: ${userId}`);
+    this.logger.log(`Fetching timeseries for user: ${user.id}`);
 
-    const user = await this.userRepo.findOne({ where: { id: userId }, select: ['id', 'timezone'] });
-    const timezone = user?.timezone ?? 'UTC';
+    const timezone = user.timezone;
 
-    const qb = this.applyBaseFilters(this.sessionRepo.createQueryBuilder('session'), userId, query);
+    const qb = this.applyBaseFilters(
+      this.sessionRepo.createQueryBuilder('session'),
+      user.id,
+      query,
+    );
 
     const dateTruncSql = "TO_CHAR(session.started_at AT TIME ZONE :timezone, 'YYYY-MM-DD')";
 
@@ -268,8 +273,8 @@ export class AnalyticsService {
         status: queueMetrics.failed === 0 ? 'operational' : 'degraded',
       },
       postgres: {
-        latencyMs,
-        status: latencyMs < 100 ? 'operational' : 'degraded',
+        latencyMs: latencyMs ?? 0,
+        status: latencyMs !== null && latencyMs < LATENCY_THRESHOLD_MS ? 'operational' : 'degraded',
       },
       llm: {
         status: llmInfo?.hasKey ? 'operational' : 'unconfigured',
@@ -279,9 +284,14 @@ export class AnalyticsService {
     };
   }
 
-  private async measureDbLatency(): Promise<number> {
+  private async measureDbLatency(): Promise<number | null> {
     const start = performance.now();
-    await this.sessionRepo.query('SELECT 1');
-    return Math.round((performance.now() - start) * 10) / 10;
+    try {
+      await this.sessionRepo.query('SELECT 1');
+      return Math.round((performance.now() - start) * 10) / 10;
+    } catch (error) {
+      this.logger.warn('DB latency probe failed', error);
+      return null;
+    }
   }
 }

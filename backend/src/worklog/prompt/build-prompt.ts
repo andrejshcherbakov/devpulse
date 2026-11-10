@@ -29,6 +29,7 @@ export function buildSystemPrompt(format: WorklogFormat, language: WorklogLangua
     '7. If "focusScore" is 80 or higher, mention that the focus was high.',
     '8. If "aiAssistedPercent" is null, do not mention AI and do not call the work manual. Otherwise mention an AI assistant at most once, without naming tools, and never claim it wrote specific code.',
     '9. "hotFiles" contains up to five workspace-relative files ranked by attributed editor time. Use a filename only when it makes the summary more concrete. Never infer an implementation, outcome or task from a path alone, and never mechanically list every path.',
+    '10. "branchWork" connects a project and branch with active time, active files, files changed by observed commits, and commit messages. Use commit messages as the primary evidence. A branch name or path is only a hint; infer a high-level work area only when at least two signals agree. Never claim that a feature is complete or working unless the telemetry confirms it.',
   ].join('\n');
 }
 
