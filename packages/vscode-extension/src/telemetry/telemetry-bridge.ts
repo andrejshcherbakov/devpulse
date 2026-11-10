@@ -25,7 +25,11 @@ import { createEvent, type EventPartial, type TelemetryEventType } from './bridg
 import { FlushScheduler } from './bridge/flush-scheduler.js';
 import { PendingBuffer } from './bridge/pending-buffer.js';
 import { MissingApiKeyError, TelemetryApiClient } from './api-client.js';
-import { TelemetryBufferStore } from './buffer-store.js';
+import {
+  type BufferedTelemetryBatch,
+  MAX_BUFFER_SIZE,
+  TelemetryBufferStore,
+} from './buffer-store.js';
 import { TelemetryRequestError } from './telemetry-request-error.js';
 
 function isTrackedDocument(uri: vscode.Uri): boolean {
@@ -38,19 +42,21 @@ function isRelativeWorkspacePath(uri: vscode.Uri): boolean {
 }
 const RETRY_BASE_DELAY_MS = 30_000;
 const RETRY_MAX_DELAY_MS = 15 * 60 * 1000;
+const MAX_BATCH_SIZE = 50;
 export class TelemetryBridge implements vscode.Disposable {
   private readonly disposables: Array<vscode.Disposable> = [];
   private readonly client: TelemetryApiClient;
-  private readonly bufferStore = new TelemetryBufferStore();
+  private readonly bufferStore: TelemetryBufferStore;
   private readonly contextTracker: ContextTracker;
   private readonly pendingBuffer = new PendingBuffer();
   private readonly flushScheduler: FlushScheduler;
-  private inflight: { batchId: string; events: Array<TelemetryEventDto> } | null = null;
+  private inflight: BufferedTelemetryBatch | null = null;
 
   private queue: Array<TelemetryEventDto> = [];
   private flushing = false;
   private stopped = false;
   private paused = false;
+  private bufferCleared = false;
   private savePromise: Promise<void> = Promise.resolve();
 
   private lastActivityState: ActivityState | null = null;
@@ -58,6 +64,8 @@ export class TelemetryBridge implements vscode.Disposable {
 
   private consecutiveFailures = 0;
   private nextAttemptAt = 0;
+  private lastSuccessfulSyncAt: number | null = null;
+  private lastSyncError: string | null = null;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -71,6 +79,7 @@ export class TelemetryBridge implements vscode.Disposable {
     private readonly log?: vscode.LogOutputChannel,
   ) {
     this.client = new TelemetryApiClient(context, log);
+    this.bufferStore = new TelemetryBufferStore(log);
     this.contextTracker = new ContextTracker(log);
     this.flushScheduler = new FlushScheduler({
       flush: () => {
@@ -80,6 +89,22 @@ export class TelemetryBridge implements vscode.Disposable {
         this.sendHeartbeat();
       },
     });
+  }
+
+  public get bufferedEventCount(): number {
+    return (this.inflight?.events.length ?? 0) + this.queue.length;
+  }
+
+  public get lastSuccessfulSync(): number | null {
+    return this.lastSuccessfulSyncAt;
+  }
+
+  public get nextRetry(): number | null {
+    return this.nextAttemptAt > Date.now() ? this.nextAttemptAt : null;
+  }
+
+  public get syncError(): string | null {
+    return this.lastSyncError;
   }
 
   public pause(): void {
@@ -107,7 +132,9 @@ export class TelemetryBridge implements vscode.Disposable {
 
   public async start(): Promise<void> {
     try {
-      this.queue = this.bufferStore.load(this.context);
+      const buffered = this.bufferStore.load(this.context);
+      this.queue = buffered.queue;
+      this.inflight = buffered.inflight;
     } catch (error) {
       this.log?.error(`buffer load failed: ${String(error)}`);
       this.queue = [];
@@ -128,7 +155,7 @@ export class TelemetryBridge implements vscode.Disposable {
       this.enqueue(this.createHeartbeat());
     }
 
-    if (this.queue.length > 0) {
+    if (this.bufferedEventCount > 0) {
       await this.flush();
     }
 
@@ -157,6 +184,7 @@ export class TelemetryBridge implements vscode.Disposable {
   }
 
   public async clearBufferedEvents(): Promise<void> {
+    this.bufferCleared = true;
     this.queue = [];
     this.inflight = null;
     this.pendingBuffer.clear();
@@ -437,12 +465,23 @@ export class TelemetryBridge implements vscode.Disposable {
 
     this.log?.info(`enqueue: type=${event.type} branch=${event.gitBranch}`);
     this.queue.push(event);
-    this.persistQueue();
+    this.enforceBufferLimit();
+    void this.persistBuffer();
 
     const { immediate } = this.flushScheduler.scheduleFlush(this.queue.length);
     if (immediate) {
       void this.flush();
     }
+  }
+
+  private enforceBufferLimit(): void {
+    const inflightSize = this.inflight?.events.length ?? 0;
+    const queueCapacity = Math.max(0, MAX_BUFFER_SIZE - inflightSize);
+    const dropped = Math.max(0, this.queue.length - queueCapacity);
+    if (dropped === 0) return;
+
+    this.queue.splice(0, dropped);
+    this.log?.warn(`Buffer overflow: dropped ${String(dropped)} oldest queued events`);
   }
 
   private enqueueWithBuffer(type: 'terminal_command' | 'task_run', partial: EventPartial): void {
@@ -479,14 +518,22 @@ export class TelemetryBridge implements vscode.Disposable {
     }
   }
 
-  private persistQueue(): void {
-    const snapshot = [...this.queue];
+  private persistBuffer(): Promise<void> {
+    const snapshot = {
+      queue: [...this.queue],
+      inflight:
+        this.inflight === null
+          ? null
+          : { batchId: this.inflight.batchId, events: [...this.inflight.events] },
+    };
 
     this.savePromise = this.savePromise
       .then(() => this.bufferStore.save(this.context, snapshot))
       .catch((error: unknown) => {
         this.log?.error(`buffer save failed: ${String(error)}`);
       });
+
+    return this.savePromise;
   }
 
   public stop(): void {
@@ -509,10 +556,13 @@ export class TelemetryBridge implements vscode.Disposable {
     if (!force && Date.now() < this.nextAttemptAt) return;
 
     this.flushing = true;
-    this.inflight ??= {
-      batchId: randomUUID(),
-      events: this.queue.splice(0, this.queue.length),
-    };
+    if (this.inflight === null) {
+      this.inflight = {
+        batchId: randomUUID(),
+        events: this.queue.splice(0, MAX_BATCH_SIZE),
+      };
+      await this.persistBuffer();
+    }
 
     const current = this.inflight;
 
@@ -522,13 +572,17 @@ export class TelemetryBridge implements vscode.Disposable {
         signal,
       );
 
+      if (this.bufferCleared) return;
+
       const sent = current.events.length;
       this.inflight = null;
       this.consecutiveFailures = 0;
       this.nextAttemptAt = 0;
-      this.persistQueue();
+      this.lastSuccessfulSyncAt = Date.now();
+      this.lastSyncError = null;
+      void this.persistBuffer();
 
-      this.statusBarState.setHealth('ok');
+      this.statusBarState.setSyncHealth('ok');
       this.log?.info(`flushed ${String(sent)} events`);
 
       if (this.queue.length > 0) {
@@ -537,24 +591,27 @@ export class TelemetryBridge implements vscode.Disposable {
         });
       }
     } catch (error: unknown) {
+      if (this.bufferCleared) return;
+
+      this.lastSyncError = error instanceof Error ? error.message : String(error);
       if (error instanceof MissingApiKeyError) {
-        this.statusBarState.setHealth('missing-key');
+        this.statusBarState.setSyncHealth('missing-key');
       } else if (error instanceof TelemetryRequestError) {
         if (error.isAuthError) {
-          this.statusBarState.setHealth('invalid-key'); // 401, 403
+          this.statusBarState.setSyncHealth('invalid-key'); // 401, 403
         } else if (error.retryable) {
-          this.statusBarState.setHealth('offline');
+          this.statusBarState.setSyncHealth('offline');
         } else {
-          this.statusBarState.setHealth('error');
+          this.statusBarState.setSyncHealth('error');
         }
       } else {
-        this.statusBarState.setHealth('offline');
+        this.statusBarState.setSyncHealth('offline');
       }
 
       if (error instanceof TelemetryRequestError && !error.retryable && !error.isAuthError) {
         const dropped = current.events.length;
         this.inflight = null;
-        this.persistQueue();
+        void this.persistBuffer();
         this.log?.error(
           `dropped ${String(dropped)} events: rejected by server (${String(error.status)})`,
         );

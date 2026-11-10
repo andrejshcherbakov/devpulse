@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
 
+import { combineHealthStatuses, type HealthStatus } from './health-status.js';
+
+export type { HealthStatus } from './health-status.js';
+
 export interface TodayStats {
   activeSeconds: number;
   focusScore: number;
@@ -17,14 +21,13 @@ export type TrackingBlockReason =
   | 'no-workspace'
   | 'no-git'
   | 'startup-error';
-export type HealthStatus = 'ok' | 'missing-key' | 'invalid-key' | 'offline' | 'error';
-
 export class StatusBarState implements vscode.Disposable {
   private isPausedValue = false;
   private activityValue: ActivityStatus = 'idle';
   private blockerValue: TrackingBlockReason | null = 'initializing';
   private todayStatsValue: TodayStats | null = null;
-  private healthValue: HealthStatus = 'ok';
+  private syncHealthValue: HealthStatus = 'ok';
+  private statsHealthValue: HealthStatus = 'ok';
 
   private readonly emitter = new vscode.EventEmitter<void>();
   readonly onDidChange = this.emitter.event;
@@ -46,7 +49,15 @@ export class StatusBarState implements vscode.Disposable {
   }
 
   get health(): HealthStatus {
-    return this.healthValue;
+    return combineHealthStatuses(this.syncHealthValue, this.statsHealthValue);
+  }
+
+  get syncHealth(): HealthStatus {
+    return this.syncHealthValue;
+  }
+
+  get statsHealth(): HealthStatus {
+    return this.statsHealthValue;
   }
 
   setPaused(value: boolean): void {
@@ -72,9 +83,15 @@ export class StatusBarState implements vscode.Disposable {
     this.emitter.fire();
   }
 
-  setHealth(value: HealthStatus): void {
-    if (this.healthValue === value) return;
-    this.healthValue = value;
+  setSyncHealth(value: HealthStatus): void {
+    if (this.syncHealthValue === value) return;
+    this.syncHealthValue = value;
+    this.emitter.fire();
+  }
+
+  setStatsHealth(value: HealthStatus): void {
+    if (this.statsHealthValue === value) return;
+    this.statsHealthValue = value;
     this.emitter.fire();
   }
 

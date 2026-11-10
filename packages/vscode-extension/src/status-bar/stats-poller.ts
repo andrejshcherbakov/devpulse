@@ -1,12 +1,21 @@
 import * as vscode from 'vscode';
 
-import { MissingApiKeyError, type TelemetryApiClient } from '../telemetry/api-client.js';
+import {
+  MissingApiKeyError,
+  type TelemetryApiClient,
+  type TodayStats,
+} from '../telemetry/api-client.js';
 import { TelemetryRequestError } from '../telemetry/telemetry-request-error.js';
 
-import type { StatusBarState } from './status-bar-state.js';
+import type { HealthStatus } from './health-status.js';
 
 const POLL_INTERVAL_MS = 60_000;
 const NOTIFICATION_DEBOUNCE_MS = 5 * 60 * 1000;
+
+interface StatsPollerState {
+  setTodayStats(value: TodayStats | null): void;
+  setStatsHealth(value: HealthStatus): void;
+}
 
 export class StatsPoller implements vscode.Disposable {
   private timer: ReturnType<typeof setInterval> | undefined;
@@ -15,7 +24,7 @@ export class StatsPoller implements vscode.Disposable {
 
   constructor(
     private readonly client: TelemetryApiClient,
-    private readonly state: StatusBarState,
+    private readonly state: StatsPollerState,
     private readonly log?: vscode.LogOutputChannel,
   ) {}
 
@@ -41,23 +50,23 @@ export class StatsPoller implements vscode.Disposable {
     try {
       const stats = await this.client.getTodayStats();
       this.state.setTodayStats(stats);
-      this.state.setHealth('ok');
+      this.state.setStatsHealth('ok');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.log?.warn(`stats poll failed: ${message}`);
 
       if (error instanceof MissingApiKeyError) {
-        this.state.setHealth('missing-key');
+        this.state.setStatsHealth('missing-key');
         return;
       }
 
       if (error instanceof TelemetryRequestError && error.isAuthError) {
-        this.state.setHealth('invalid-key');
+        this.state.setStatsHealth('invalid-key');
         this.notifyInvalidKey();
         return;
       }
 
-      this.state.setHealth('offline');
+      this.state.setStatsHealth('offline');
     } finally {
       this.isPolling = false;
     }

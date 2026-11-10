@@ -95,8 +95,8 @@ that provider's processing and retention terms.
   system credential store where available.
 - Remote API and dashboard endpoints must use HTTPS. Plain HTTP is permitted
   only for loopback development addresses.
-- Up to 500 unsent events can be stored in VS Code global storage while the
-  backend is unavailable.
+- Up to 500 unsent events, including the current idempotent batch, can be stored
+  in VS Code global storage while the backend is unavailable.
 - **DevPulse: Clear API Key** removes the key and the locally buffered events.
 - DevPulse output logs remain local unless the user explicitly shares them.
   Logs can contain workspace names, branch names, sanitized commands, and

@@ -42,7 +42,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   state.setPaused(context.globalState.get<boolean>(TRACKING_PAUSED_STORAGE_KEY, false));
   const storedApiKey = await context.secrets.get(DEVPULSE_API_KEY_SECRET);
   let apiKeyConfigured = storedApiKey !== undefined && storedApiKey.trim().length > 0;
-  if (!apiKeyConfigured) state.setHealth('missing-key');
+  if (!apiKeyConfigured) {
+    state.setSyncHealth('missing-key');
+    state.setStatsHealth('missing-key');
+  }
   context.subscriptions.push(outputChannel, state);
 
   outputChannel.info('DevPulse extension is now active.');

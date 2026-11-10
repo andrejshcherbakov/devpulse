@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { DEVPULSE_API_KEY_SECRET } from '../secret-keys.js';
 import type { StatusBarState } from '../status-bar/status-bar-state.js';
+import type { TelemetryBridge } from '../telemetry/telemetry-bridge.js';
 
 function configuredValue(value: string | undefined): string {
   const trimmed = value?.trim();
@@ -12,6 +13,7 @@ export function registerShowDiagnosticsCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.LogOutputChannel,
   state: StatusBarState,
+  getBridge: () => TelemetryBridge | undefined,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('devpulse.showDiagnostics', async () => {
     outputChannel.show();
@@ -23,6 +25,7 @@ export function registerShowDiagnosticsCommand(
 
     const keyLabel = key ? 'present' : 'missing';
     const pkg = context.extension.packageJSON as { version?: string };
+    const bridge = getBridge();
 
     outputChannel.info('───────────── DevPulse Diagnostics ─────────────');
     outputChannel.info(`Version: ${pkg.version ?? 'unknown'}`);
@@ -37,6 +40,16 @@ export function registerShowDiagnosticsCommand(
     outputChannel.info(`Activity: ${state.activity}`);
     outputChannel.info(`Tracking blocker: ${state.blocker ?? 'none'}`);
     outputChannel.info(`Health: ${state.health}`);
+    outputChannel.info(`Sync health: ${state.syncHealth}`);
+    outputChannel.info(`Stats health: ${state.statsHealth}`);
+    outputChannel.info(`Buffered events: ${String(bridge?.bufferedEventCount ?? 0)}`);
+    outputChannel.info(
+      `Last successful sync: ${bridge?.lastSuccessfulSync ? new Date(bridge.lastSuccessfulSync).toISOString() : 'none'}`,
+    );
+    outputChannel.info(
+      `Next retry: ${bridge?.nextRetry ? new Date(bridge.nextRetry).toISOString() : 'none'}`,
+    );
+    outputChannel.info(`Last sync error: ${bridge?.syncError ?? 'none'}`);
     outputChannel.info('────────────────────────────────────────────────');
   });
 }

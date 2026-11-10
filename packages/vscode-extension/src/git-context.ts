@@ -297,7 +297,11 @@ export class GitContextProvider implements vscode.Disposable {
   }
 
   private async resolveGitBranch(folderPath: string): Promise<string | null> {
-    return this.runGit(folderPath, ['symbolic-ref', '--short', '-q', 'HEAD']);
+    const branch = await this.runGit(folderPath, ['symbolic-ref', '--short', '-q', 'HEAD']);
+    if (branch !== null) return branch;
+
+    const detachedHead = await this.runGit(folderPath, ['rev-parse', '--short=12', 'HEAD']);
+    return detachedHead === null ? null : `detached@${detachedHead}`;
   }
 
   private async resolveGitRemoteUrl(folderPath: string): Promise<string | null> {
