@@ -18,7 +18,8 @@ into activity analytics and evidence-based standup drafts. It helps answer
 - **Standup drafts** — the backend can generate a draft from collected facts;
   the developer reviews it before use.
 - **Offline buffering** — keeps at most 500 events in VS Code global storage
-  and retries when the configured backend is available.
+  and retries stable, idempotent batches when the configured backend is
+  available.
 - **Clear controls** — persistent pause/resume and independent settings for
   paths, commands, commit messages, and AI-assistance detection.
 
@@ -47,6 +48,10 @@ Remote endpoints must use HTTPS. Plain HTTP is accepted only for localhost.
 Create an **Extension** API key under **Settings → API Keys** in the DevPulse
 dashboard. Then run **DevPulse: Set API Key** from the Command Palette.
 
+When the API URL is already configured, the extension verifies the key against
+the backend before reporting that setup succeeded. If the server is offline,
+the key remains stored and new activity is buffered locally.
+
 The key is stored in VS Code SecretStorage. Tracking starts only when all of
 the following are true:
 
@@ -57,7 +62,9 @@ the following are true:
 - VS Code telemetry is enabled;
 - a Git workspace and branch are available.
 
-The status bar shows the exact blocker or synchronization state.
+The status bar shows the exact blocker or synchronization state. **DevPulse:
+Show Diagnostics** also reports separate sync and stats health, buffered event
+count, last successful sync, next retry, and the latest sync error.
 
 ## Configuration
 
@@ -115,6 +122,9 @@ Read the complete [Privacy Policy](./PRIVACY.md) before enabling tracking.
 - a trusted filesystem workspace with Git available in `PATH`;
 - a running DevPulse backend and dashboard;
 - an Extension API key.
+
+Detached Git checkouts are tracked under a synthetic `detached@<commit>` branch
+label. Folders that are not Git repositories are not tracked in this release.
 
 ## Support and license
 

@@ -185,7 +185,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vscode-test"
+    "test": "node test.mjs"
   },
   "devDependencies": {
     "@devpulse/env": "workspace:*",

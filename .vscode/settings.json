@@ -10,8 +10,13 @@
   "eslint.codeActionsOnSave.mode": "all",
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "eslint.workingDirectories": [
-    {
-      "mode": "auto"
-    }
-  ]
+    "./backend",
+    "./packages/env",
+    "./packages/eslint-config",
+    "./packages/lib",
+    "./packages/vscode-extension",
+    "./packages/web"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

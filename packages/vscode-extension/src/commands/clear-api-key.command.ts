@@ -27,7 +27,8 @@ export function registerClearApiKeyCommand(
     }
     await context.secrets.delete(DEVPULSE_API_KEY_SECRET);
     onApiKeyChanged(false);
-    state.setHealth('missing-key');
+    state.setSyncHealth('missing-key');
+    state.setStatsHealth('missing-key');
 
     void vscode.window.showInformationMessage('DevPulse API key and buffered events cleared');
   });

@@ -59,3 +59,6 @@ jobs:
           RESEND_API_KEY: re_test123
           EMAIL_FROM: onboarding@resend.dev
           OPENAI_API_KEY: sk-test-123
+
+      - name: Run VS Code extension unit tests
+        run: pnpm --dir packages/vscode-extension test

@@ -24,14 +24,20 @@ export function registerCommands(
   deps: CommandDependencies,
 ): Array<vscode.Disposable> {
   return [
-    registerSetApiKeyCommand(context, deps.state, deps.getBridge, deps.onApiKeyChanged),
+    registerSetApiKeyCommand(
+      context,
+      deps.state,
+      deps.getBridge,
+      deps.onApiKeyChanged,
+      deps.outputChannel,
+    ),
     registerClearApiKeyCommand(context, deps.state, deps.getBridge, deps.onApiKeyChanged),
 
     registerShowStatusMenuCommand(deps.state),
     registerPauseTrackingCommand(context, deps.state, deps.getBridge),
     registerResumeTrackingCommand(context, deps.state, deps.getBridge),
     registerShowLogCommand(deps.outputChannel),
-    registerShowDiagnosticsCommand(context, deps.outputChannel, deps.state),
+    registerShowDiagnosticsCommand(context, deps.outputChannel, deps.state, deps.getBridge),
     ...registerOpenDashboardCommands(),
   ];
 }
