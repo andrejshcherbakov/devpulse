@@ -13,10 +13,21 @@ const FACTS: DayFacts = {
     {
       project: 'devpulse',
       branch: 'feat/dashboard-translations',
+      workState: 'committed',
+      previousActiveDays: 2,
       activeMinutes: 80,
       activeFiles: [{ path: 'src/locales/pl.json', minutes: 45 }],
       changedFiles: ['src/locales/pl.json', 'src/components/locale-switcher.tsx'],
+      commitsObserved: 1,
       commits: [{ message: 'add Polish translations', insertions: 120, deletions: 2 }],
+      contextCommits: [{ date: '2026-11-04', message: 'prepare dashboard locale structure' }],
+      terminal: {
+        totalRuns: 1,
+        failedRuns: 0,
+        tests: { runs: 1, failed: 0, lastRunPassed: true },
+        builds: null,
+        lint: null,
+      },
     },
   ],
   languages: [],
@@ -28,7 +39,6 @@ const FACTS: DayFacts = {
     builds: null,
     lint: null,
   },
-  commits: [],
   aiAssistedPercent: null,
 };
 
@@ -49,15 +59,19 @@ describe('worklog prompt', () => {
   it('explains how branch evidence may be combined without treating names as proof', () => {
     const prompt = buildSystemPrompt('standup', 'en');
 
-    expect(prompt).toContain('"branchWork" connects a project and branch');
-    expect(prompt).toContain('A branch name or path is only a hint');
+    expect(prompt).toContain('Each "branchWork" item represents one logical task');
+    expect(prompt).toContain('its "branch" is already normalised');
+    expect(prompt).toContain('Committed never means completed');
+    expect(prompt).toContain('"contextCommits" are earlier commits observed');
   });
 
   it('includes branch-scoped time and Git evidence in the telemetry block', () => {
     const prompt = buildUserPrompt(FACTS);
 
     expect(prompt).toContain('"branch":"feat/dashboard-translations"');
+    expect(prompt).toContain('"workState":"committed"');
     expect(prompt).toContain('"changedFiles":["src/locales/pl.json"');
     expect(prompt).toContain('"message":"add Polish translations"');
+    expect(prompt).toContain('"message":"prepare dashboard locale structure"');
   });
 });
