@@ -78,9 +78,10 @@ export function AiWorklogCard(): JSX.Element {
                 Day-by-day summary for up to {String(MAX_RANGE_DAYS)} days
               </p>
               <p className="mt-1 max-w-xl text-xs leading-relaxed text-subtle">
-                The report connects active time with projects, Git branches, observed commits and
-                sanitised relative file paths. This helps describe what changed without sending file
-                contents or source-code diffs to your configured AI provider.
+                The report groups activity into Git branch tasks and uses recent branch history,
+                observed commits, command results and sanitised relative file paths to explain the
+                purpose and progress of the work. File contents and source-code diffs are never sent
+                to your configured AI provider.
               </p>
             </div>
           </div>
