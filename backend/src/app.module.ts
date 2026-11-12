@@ -14,6 +14,7 @@ import { EmailModule } from './email/email.module';
 import { HealthModule } from './health/health.module';
 import { Project } from './projects/entities/project.entity';
 import { ProjectsModule } from './projects/projects.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { RedisModule } from './redis/redis.module';
 import { TelemetryEvent } from './telemetry/entities/telemetry-event.entity';
 import { WorkSession } from './telemetry/entities/work-session.entity';
@@ -70,6 +71,7 @@ const throttlerProvider: Provider = {
     }),
 
     RedisModule,
+    RealtimeModule,
     AuthModule,
     ApiKeysModule,
     TelemetryModule,

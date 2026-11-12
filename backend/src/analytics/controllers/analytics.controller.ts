@@ -1,21 +1,26 @@
 import {
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
+  type MessageEvent,
   Query,
   Res,
+  Sse,
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import type { Observable } from 'rxjs';
 
 import { type PipelineHealth } from '@devpulse/lib';
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { type AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { AnalyticsUpdatesService } from '../../realtime/analytics-updates.service';
 import { GetAnalyticsRangeRequestDto } from '../dto/request/get-analytics-range-request.dto';
 import { GetAnalyticsBranchesResponseDto } from '../dto/response/get-analytics-branches-response.dto';
 import { GetAnalyticsCommandsResponseDto } from '../dto/response/get-analytics-commands-response.dto';
@@ -38,7 +43,16 @@ export class AnalyticsController {
     private readonly analyticsService: AnalyticsService,
     private readonly analyticsExportService: AnalyticsExportService,
     private readonly integrationsService: IntegrationsAnalyticsService,
+    private readonly analyticsUpdates: AnalyticsUpdatesService,
   ) {}
+
+  @Sse('stream')
+  @Header('Cache-Control', 'no-cache, no-transform')
+  @Header('X-Accel-Buffering', 'no')
+  @ApiOperation({ summary: 'Stream authenticated analytics update notifications' })
+  public streamUpdates(@CurrentUser() user: AuthenticatedUser): Observable<MessageEvent> {
+    return this.analyticsUpdates.streamForUser(user.id);
+  }
 
   @Get('dashboard')
   @HttpCode(HttpStatus.OK)
