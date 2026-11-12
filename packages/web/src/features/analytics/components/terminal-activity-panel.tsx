@@ -58,7 +58,7 @@ export function TerminalActivityPanel({
   range: DateRange;
   projectId?: string;
 }): JSX.Element {
-  const { data, isLoading } = useCommandsBreakdown(range, projectId);
+  const { data, isFetching, isLoading } = useCommandsBreakdown(range, projectId);
   const [filter, setFilter] = useState<KindFilter>('all');
 
   const allCommands = data?.commands ?? [];
@@ -72,7 +72,15 @@ export function TerminalActivityPanel({
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>Terminal activity</PanelTitle>
+          <div className="flex items-center gap-2">
+            <PanelTitle>Terminal activity</PanelTitle>
+            {isFetching && !isLoading && (
+              <span className="flex items-center gap-1.5 text-[10px] text-subtle" aria-live="polite">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                Updating
+              </span>
+            )}
+          </div>
           <PanelDescription>Commands and tasks you ran</PanelDescription>
         </div>
 

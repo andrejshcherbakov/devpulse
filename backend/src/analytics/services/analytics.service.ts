@@ -173,11 +173,11 @@ export class AnalyticsService {
 
     if (query.startDate) {
       params.push(query.startDate);
-      whereClause += ` AND ws.started_at >= $${String(params.length)}`;
+      whereClause += ` AND (cmd->>'timestamp')::timestamptz >= $${String(params.length)}`;
     }
     if (query.endDate) {
       params.push(query.endDate);
-      whereClause += ` AND ws.started_at <= $${String(params.length)}`;
+      whereClause += ` AND (cmd->>'timestamp')::timestamptz <= $${String(params.length)}`;
     }
     if (query.projectId) {
       params.push(query.projectId);

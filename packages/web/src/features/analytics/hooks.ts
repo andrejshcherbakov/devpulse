@@ -60,6 +60,7 @@ function endOfDay(d: Date): Date {
 export function periodToDateRange(
   period: AnalyticsPeriod,
   custom?: { startDate: string; endDate: string },
+  currentDate = new Date(),
 ): DateRange {
   if (period === 'custom' && custom?.startDate && custom?.endDate) {
     const startDate = new Date(`${custom.startDate}T00:00:00`);
@@ -70,7 +71,7 @@ export function periodToDateRange(
       : { startDate: endDate.toISOString(), endDate: startDate.toISOString() };
   }
 
-  const now = new Date();
+  const now = new Date(currentDate);
   now.setSeconds(0, 0);
 
   const start = new Date(now);

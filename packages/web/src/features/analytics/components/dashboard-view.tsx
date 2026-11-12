@@ -16,7 +16,7 @@ import {
   periodToDateRange,
   useLiveStatus,
 } from '../hooks';
-import { useLiveAnalyticsUpdates } from '../use-live-analytics-updates';
+import { useLiveAnalyticsUpdatedAt } from '../live-analytics-provider';
 import { ActivityChartPanel } from './activity-chart-panel';
 import { AiRoiPanel } from './ai-roi-panel';
 import { ComparisonPanel } from './comparison-panel';
@@ -68,14 +68,16 @@ export function DashboardView({
 }: DashboardViewProps): JSX.Element {
   const { user } = useRequireAuth();
   const { data: liveStatus } = useLiveStatus();
-  useLiveAnalyticsUpdates();
+  const liveUpdatedAt = useLiveAnalyticsUpdatedAt();
 
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
   const [customDates, setCustomDates] = useState(getInitialCustomDates);
-  const range = useMemo(
-    () => (period === '7d' ? initialRange : periodToDateRange(period, customDates)),
-    [customDates, initialRange, period],
-  );
+  const range = useMemo(() => {
+    if (liveUpdatedAt === null && period === '7d') return initialRange;
+
+    const currentDate = new Date(liveUpdatedAt ?? initialRange.endDate);
+    return periodToDateRange(period, customDates, currentDate);
+  }, [customDates, initialRange, liveUpdatedAt, period]);
 
   const [projectId, setProjectId] = useState<string | undefined>();
 
