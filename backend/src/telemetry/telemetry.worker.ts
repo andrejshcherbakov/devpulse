@@ -6,6 +6,7 @@ import { DataSource, EntityManager, IsNull, LessThan, Repository } from 'typeorm
 import { stripUrlCredentials, typeIdGenerator } from '@devpulse/lib';
 
 import { Project } from '../projects/entities/project.entity';
+import { AnalyticsUpdatesService } from '../realtime/analytics-updates.service';
 import { BULL_REDIS_CLIENT } from '../redis/redis.module';
 import { User } from '../users/entities/user.entity';
 import { UserRepository } from '../users/repositories/users.repository';
@@ -122,6 +123,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     private readonly redisConnection: Redis,
     private readonly userRepository: UserRepository,
     private readonly dataSource: DataSource,
+    private readonly analyticsUpdates: AnalyticsUpdatesService,
   ) {}
 
   public onModuleInit(): void {
@@ -174,7 +176,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    await this.dataSource.transaction(async (manager: EntityManager) => {
+    const projectIds = await this.dataSource.transaction(async (manager: EntityManager) => {
       const projectCache = new Map<string, Project>();
       const rawEventsBatch: Array<TelemetryEvent> = [];
 
@@ -187,7 +189,11 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
           .getRepository(TelemetryEvent)
           .save(rawEventsBatch, { chunk: RAW_EVENTS_CHUNK_SIZE });
       }
+
+      return [...new Set([...projectCache.values()].map((project) => project.id))];
     });
+
+    await this.analyticsUpdates.publishAnalyticsUpdated(user.id, projectIds);
   }
 
   private prepareEvents(events: ReadonlyArray<TelemetryEventItemDto>): Array<TimedEvent> {

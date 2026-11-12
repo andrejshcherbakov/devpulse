@@ -21,6 +21,10 @@ export class TransformInterceptor<T> implements NestInterceptor<
   ): Observable<ApiResponse<T> | StreamableFile> {
     const request = context.switchToHttp().getRequest<Request>();
 
+    if (request.headers.accept?.includes('text/event-stream') === true) {
+      return next.handle() as Observable<ApiResponse<T> | StreamableFile>;
+    }
+
     return next.handle().pipe(
       map((data) => {
         if (data instanceof StreamableFile) {

@@ -6,12 +6,14 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { of } from 'rxjs';
 import request from 'supertest';
 
 import { type TypeId } from '@devpulse/lib';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { type AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { AnalyticsUpdatesService } from '../../realtime/analytics-updates.service';
 import { getHttpServer } from '../../test/get-http-server';
 import { type GetAnalyticsRangeRequestDto } from '../dto/request/get-analytics-range-request.dto';
 import { GetAnalyticsDashboardResponseDto } from '../dto/response/get-analytics-dashboard-response.dto';
@@ -94,6 +96,12 @@ describe('AnalyticsController (Integration)', () => {
     ),
   };
 
+  const mockAnalyticsUpdates = {
+    streamForUser: jest.fn((_userId: TypeId<'users'>) =>
+      of({ type: 'connected', data: { connectedAt: '2026-11-12T10:00:00.000Z' } }),
+    ),
+  };
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AnalyticsController],
@@ -109,6 +117,10 @@ describe('AnalyticsController (Integration)', () => {
         {
           provide: IntegrationsAnalyticsService,
           useValue: mockIntegrationsService,
+        },
+        {
+          provide: AnalyticsUpdatesService,
+          useValue: mockAnalyticsUpdates,
         },
       ],
     })
@@ -142,6 +154,18 @@ describe('AnalyticsController (Integration)', () => {
     const response = await request(getHttpServer(app)).get('/analytics/dashboard');
 
     expect(response.status).toBe(401);
+  });
+
+  it('should stream analytics updates for the authenticated user', async () => {
+    const response = await request(getHttpServer(app))
+      .get('/analytics/stream')
+      .set('Authorization', 'Bearer valid-jwt')
+      .set('Accept', 'text/event-stream');
+
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toContain('text/event-stream');
+    expect(response.text).toContain('event: connected');
+    expect(mockAnalyticsUpdates.streamForUser).toHaveBeenCalledWith(mockAuthUser.id);
   });
 
   it('should return dashboard summary statistics for authenticated user', async () => {
