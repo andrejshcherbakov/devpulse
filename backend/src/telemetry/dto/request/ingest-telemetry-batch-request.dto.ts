@@ -14,7 +14,23 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { type TelemetryEventDto } from '@devpulse/lib';
+import {
+  type TelemetryEventDto,
+  WORKING_TREE_STATUSES,
+  type WorkingTreeChange,
+  type WorkingTreeStatus,
+} from '@devpulse/lib';
+
+class WorkingTreeChangeItemDto implements WorkingTreeChange {
+  @ApiProperty({ description: 'Workspace-relative path' })
+  @IsString()
+  @MaxLength(512)
+  public path!: string;
+
+  @ApiProperty({ description: 'Observed Git working-tree status', enum: WORKING_TREE_STATUSES })
+  @IsIn(WORKING_TREE_STATUSES)
+  public status!: WorkingTreeStatus;
+}
 
 export class TelemetryEventItemDto implements TelemetryEventDto {
   @ApiProperty({
@@ -30,6 +46,8 @@ export class TelemetryEventItemDto implements TelemetryEventDto {
       'task_run',
       'git_commit',
       'ai_interaction',
+      'working_tree',
+      'symbol_touch',
     ],
   })
   @IsIn([
@@ -43,18 +61,10 @@ export class TelemetryEventItemDto implements TelemetryEventDto {
     'task_run',
     'git_commit',
     'ai_interaction',
+    'working_tree',
+    'symbol_touch',
   ])
-  public type!:
-    | 'heartbeat'
-    | 'file_save'
-    | 'file_switch'
-    | 'idle_start'
-    | 'idle_end'
-    | 'session_end'
-    | 'terminal_command'
-    | 'task_run'
-    | 'git_commit'
-    | 'ai_interaction';
+  public type!: TelemetryEventDto['type'];
 
   @ApiProperty({ description: 'Git branch name (e.g., main, develop)' })
   @IsString()
@@ -180,6 +190,30 @@ export class TelemetryEventItemDto implements TelemetryEventDto {
   @IsBoolean()
   @IsOptional()
   public aiEstimated?: boolean;
+
+  @ApiProperty({
+    description: 'Latest observed uncommitted Git changes; an empty list means a clean tree',
+    type: [WorkingTreeChangeItemDto],
+    required: false,
+  })
+  @IsArray()
+  @ArrayMaxSize(100)
+  @ValidateNested({ each: true })
+  @Type(() => WorkingTreeChangeItemDto)
+  @IsOptional()
+  public workingTreeChanges?: Array<WorkingTreeChangeItemDto>;
+
+  @ApiProperty({
+    description: 'Names of touched classes and functions; source code is not included',
+    type: [String],
+    required: false,
+  })
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  @MaxLength(160, { each: true })
+  @IsOptional()
+  public symbols?: Array<string>;
 }
 
 export class IngestTelemetryBatchRequestDto {

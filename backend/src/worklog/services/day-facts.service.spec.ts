@@ -60,6 +60,13 @@ function createSession(): WorkSession {
       timestamp: '2026-11-10T10:00:00.000Z',
     },
   ];
+  session.workingTreeChanges = [
+    { path: 'src/components/locale-switcher.tsx', status: 'modified' },
+    { path: 'src/locales/uk.json', status: 'untracked' },
+  ];
+  session.touchedSymbols = {
+    'src/components/locale-switcher.tsx': ['LocaleSwitcher', 'LocaleSwitcher.changeLocale'],
+  };
   session.terminalCommands = [];
 
   return session;
@@ -93,6 +100,16 @@ describe('DayFactsService', () => {
           { path: 'src/components/locale-switcher.tsx', minutes: 35 },
         ],
         changedFiles: ['src/locales/pl.json', 'src/components/locale-switcher.tsx'],
+        uncommittedFiles: [
+          { path: 'src/components/locale-switcher.tsx', status: 'modified' },
+          { path: 'src/locales/uk.json', status: 'untracked' },
+        ],
+        touchedSymbols: [
+          {
+            path: 'src/components/locale-switcher.tsx',
+            symbols: ['LocaleSwitcher', 'LocaleSwitcher.changeLocale'],
+          },
+        ],
         commitsObserved: 1,
         commits: [
           {

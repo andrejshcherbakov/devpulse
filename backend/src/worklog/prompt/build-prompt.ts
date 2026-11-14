@@ -34,6 +34,8 @@ export function buildSystemPrompt(format: WorklogFormat, language: WorklogLangua
     '12. "contextCommits" are earlier commits observed on the same logical branch. Use them to understand the broader goal, but never claim that their changes or outcomes happened on the reported day.',
     '13. For several branches, group the report by task, prioritise the branch with the most active time, and mention smaller tasks briefly. Do not turn the report into a list of branches or files.',
     '14. Never claim that a feature is complete, deployed or working unless explicit telemetry evidence supports that exact outcome. A successful test confirms only the tested work, not the entire feature.',
+    '15. "uncommittedFiles" is the latest Git working-tree snapshot observed for that branch. Null means no snapshot was received, an empty array means the tree was observed clean, and entries describe work that was not committed at that moment. Use it as evidence of ongoing work, never as proof that a change was finished.',
+    '16. "touchedSymbols" contains names of classes, interfaces, methods or functions whose lines changed in saved files. It can make the description more concrete, but a name does not prove behavior or outcome. Never claim that a symbol was added, fixed or completed unless other facts support it.',
   ].join('\n');
 }
 

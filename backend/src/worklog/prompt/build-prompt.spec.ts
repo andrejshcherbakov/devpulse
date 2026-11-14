@@ -18,6 +18,12 @@ const FACTS: DayFacts = {
       activeMinutes: 80,
       activeFiles: [{ path: 'src/locales/pl.json', minutes: 45 }],
       changedFiles: ['src/locales/pl.json', 'src/components/locale-switcher.tsx'],
+      uncommittedFiles: [
+        { path: 'src/components/locale-switcher.tsx', status: 'modified' },
+      ],
+      touchedSymbols: [
+        { path: 'src/components/locale-switcher.tsx', symbols: ['LocaleSwitcher'] },
+      ],
       commitsObserved: 1,
       commits: [{ message: 'add Polish translations', insertions: 120, deletions: 2 }],
       contextCommits: [{ date: '2026-11-04', message: 'prepare dashboard locale structure' }],
@@ -73,5 +79,16 @@ describe('worklog prompt', () => {
     expect(prompt).toContain('"changedFiles":["src/locales/pl.json"');
     expect(prompt).toContain('"message":"add Polish translations"');
     expect(prompt).toContain('"message":"prepare dashboard locale structure"');
+    expect(prompt).toContain('"status":"modified"');
+    expect(prompt).toContain('"symbols":["LocaleSwitcher"]');
+  });
+
+  it('explains the limits of working-tree and symbol evidence', () => {
+    const prompt = buildSystemPrompt('daily-log', 'en');
+
+    expect(prompt).toContain('"uncommittedFiles" is the latest Git working-tree snapshot');
+    expect(prompt).toContain('an empty array means the tree was observed clean');
+    expect(prompt).toContain('"touchedSymbols" contains names of classes');
+    expect(prompt).toContain('a name does not prove behavior or outcome');
   });
 });

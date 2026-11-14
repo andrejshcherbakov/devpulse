@@ -3,7 +3,7 @@ import { Job, Worker } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { DataSource, EntityManager, IsNull, LessThan, Repository } from 'typeorm';
 
-import { stripUrlCredentials, typeIdGenerator } from '@devpulse/lib';
+import { stripUrlCredentials, typeIdGenerator, type WorkingTreeChange } from '@devpulse/lib';
 
 import { Project } from '../projects/entities/project.entity';
 import { AnalyticsUpdatesService } from '../realtime/analytics-updates.service';
@@ -31,6 +31,10 @@ const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_LANGUAGE_DELTA_SEC = 300;
 const MAX_COMMANDS = 500;
 const MAX_COMMITS = 100;
+const MAX_WORKING_TREE_FILES = 100;
+const MAX_SYMBOL_FILES = 100;
+const MAX_SYMBOLS_PER_FILE = 20;
+const MAX_SYMBOL_NAME_LENGTH = 160;
 const FOCUS_FAILURE_MAX_PENALTY = 20;
 const UNKNOWN_PROJECT_NAME = 'Unknown';
 const RAW_EVENTS_CHUNK_SIZE = 100;
@@ -343,6 +347,8 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
       terminalCommands: [],
       commitsCount: 0,
       commits: [],
+      workingTreeChanges: null,
+      touchedSymbols: {},
       machineId: null,
       aiAssisted: false,
       aiInteractionsCount: 0,
@@ -435,6 +441,8 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     this.applyCommandTracking(session, event, time);
     this.applyAiInteractionTracking(session, event);
     this.applyCommitTracking(session, event, time);
+    this.applyWorkingTreeTracking(session, event);
+    this.applySymbolTracking(session, event);
 
     session.machineId ??= event.machineId ?? null;
   }
@@ -578,6 +586,52 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     session.commitsCount = session.commits.length;
   }
 
+  private applyWorkingTreeTracking(session: WorkSession, event: TelemetryEventItemDto): void {
+    if (event.type !== 'working_tree' || event.workingTreeChanges === undefined) {
+      return;
+    }
+
+    const changes: Array<WorkingTreeChange> = [];
+    const seen = new Set<string>();
+
+    for (const change of event.workingTreeChanges) {
+      const path = normalizeWorkspaceFilePath(change.path);
+      if (path === null || seen.has(path)) continue;
+
+      seen.add(path);
+      changes.push({ path, status: change.status });
+
+      if (changes.length >= MAX_WORKING_TREE_FILES) break;
+    }
+
+    session.workingTreeChanges = changes;
+  }
+
+  private applySymbolTracking(session: WorkSession, event: TelemetryEventItemDto): void {
+    if (event.type !== 'symbol_touch' || event.filePath === undefined || !event.symbols) {
+      return;
+    }
+
+    const path = normalizeWorkspaceFilePath(event.filePath);
+    if (path === null) return;
+
+    const current = session.touchedSymbols;
+    if (!(path in current) && Object.keys(current).length >= MAX_SYMBOL_FILES) return;
+
+    const symbols = new Set(current[path] ?? []);
+
+    for (const rawSymbol of event.symbols) {
+      const symbol = rawSymbol
+        .replaceAll(/[\r\n\t]+/g, ' ')
+        .trim()
+        .slice(0, MAX_SYMBOL_NAME_LENGTH);
+      if (symbol !== '') symbols.add(symbol);
+      if (symbols.size >= MAX_SYMBOLS_PER_FILE) break;
+    }
+
+    session.touchedSymbols = { ...current, [path]: [...symbols] };
+  }
+
   private topLanguage(buckets: Record<string, number> | null | undefined): string | null {
     if (!buckets) {
       return null;
@@ -665,8 +719,9 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     const { event, branch, time } = item;
     const repo = manager.getRepository(TelemetryEvent);
 
-    const rawFiles: Array<string> =
-      event.filesList && event.filesList.length > 0
+    const rawFiles: Array<string> = event.workingTreeChanges
+      ? event.workingTreeChanges.map((change) => change.path)
+      : event.filesList && event.filesList.length > 0
         ? event.filesList
         : event.filePath
           ? [event.filePath]

@@ -163,6 +163,16 @@
             "usesOnlineServices"
           ]
         },
+        "devpulse.sendSymbolNames": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send names of classes and functions touched in saved files for worklog context. Source code, signatures, and function bodies are never sent.",
+          "scope": "machine",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ]
+        },
         "devpulse.detectAiAssistance": {
           "type": "boolean",
           "default": true,

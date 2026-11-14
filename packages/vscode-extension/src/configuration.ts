@@ -74,6 +74,12 @@ export function shouldSendCommitMessages(): boolean {
     .get<boolean>('sendCommitMessages', true);
 }
 
+export function shouldSendSymbolNames(): boolean {
+  return vscode.workspace
+    .getConfiguration(CONFIG_NAMESPACE)
+    .get<boolean>('sendSymbolNames', false);
+}
+
 export function shouldDetectAiAssistance(): boolean {
   return vscode.workspace
     .getConfiguration(CONFIG_NAMESPACE)

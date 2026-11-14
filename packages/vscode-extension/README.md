@@ -12,7 +12,8 @@ into activity analytics and evidence-based standup drafts. It helps answer
 - **Active-time tracking** — excludes idle, unfocused, paused, and system-sleep
   intervals.
 - **Workflow evidence** — branches, commits, test/build/lint outcomes, and
-  optional sanitized terminal commands.
+  optional sanitized terminal commands, uncommitted-file status, and touched
+  symbol names.
 - **Dashboard analytics** — sessions, languages, hot files, commands, focus,
   heatmaps, and AI-assisted activity estimates.
 - **Standup drafts** — the backend can generate a draft from collected facts;
@@ -68,15 +69,16 @@ count, last successful sync, next retry, and the latest sync error.
 
 ## Configuration
 
-| Setting                         | Default | Description                                                      |
-| ------------------------------- | ------- | ---------------------------------------------------------------- |
-| `devpulse.enabled`              | `true`  | Master switch for DevPulse tracking                              |
-| `devpulse.apiUrl`               | empty   | Self-hosted backend URL; HTTPS required outside localhost        |
-| `devpulse.dashboardUrl`         | empty   | Dashboard URL used by quick-menu links                           |
-| `devpulse.sendFilePaths`        | `true`  | Send workspace-relative paths for file analytics                 |
-| `devpulse.sendTerminalCommands` | `true`  | Send sanitized commands, relative cwd, exit code, and duration   |
-| `devpulse.sendCommitMessages`   | `true`  | Send commit messages for report context                          |
-| `devpulse.detectAiAssistance`   | `true`  | Detect likely AI insertions locally and send an estimated marker |
+| Setting                         | Default | Description                                                         |
+| ------------------------------- | ------- | ------------------------------------------------------------------- |
+| `devpulse.enabled`              | `true`  | Master switch for DevPulse tracking                                 |
+| `devpulse.apiUrl`               | empty   | Self-hosted backend URL; HTTPS required outside localhost           |
+| `devpulse.dashboardUrl`         | empty   | Dashboard URL used by quick-menu links                              |
+| `devpulse.sendFilePaths`        | `true`  | Send relative paths, including uncommitted-file status              |
+| `devpulse.sendTerminalCommands` | `true`  | Send sanitized commands, relative cwd, exit code, and duration      |
+| `devpulse.sendCommitMessages`   | `true`  | Send commit messages for report context                             |
+| `devpulse.sendSymbolNames`      | `false` | Send names of touched classes/functions; never bodies or signatures |
+| `devpulse.detectAiAssistance`   | `true`  | Detect likely AI insertions locally and send an estimated marker    |
 
 Changing a privacy setting affects newly created events. Previously uploaded
 data remains subject to the configured backend's retention policy.
@@ -108,6 +110,11 @@ DevPulse sends workflow metadata only to the backend configured in
 `devpulse.apiUrl`. File paths are workspace-relative. Terminal commands are
 sanitized on a best-effort basis, and their working directory is relative to
 the active workspace. Source-code contents and terminal output are not sent.
+
+When symbol-name sharing is enabled, VS Code's document-symbol provider is
+used locally after a save. DevPulse sends only matching names such as
+`AuthService.refresh`; it does not send source lines, function bodies,
+signatures, or a Git diff.
 
 AI-assistance detection inspects the shape of a text change locally (for
 example, whether it is a large multiline insertion). The inserted text is not

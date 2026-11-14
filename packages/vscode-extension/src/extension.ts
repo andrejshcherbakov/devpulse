@@ -3,15 +3,22 @@ import * as vscode from 'vscode';
 import { registerCommands } from './commands/index.js';
 import { AiMonitor } from './signals/ai-monitor.js';
 import { GitCommitWatcher } from './signals/git-commit-watcher.js';
+import { SymbolMonitor } from './signals/symbol-monitor.js';
 import { TasksMonitor } from './signals/tasks-monitor.js';
 import { TerminalMonitor } from './signals/terminal-monitor.js';
+import { WorkingTreeMonitor } from './signals/working-tree-monitor.js';
 import { DevPulseStatusBar } from './status-bar/devpulse-status-bar.js';
 import { StatsPoller } from './status-bar/stats-poller.js';
 import { StatusBarState, type TrackingBlockReason } from './status-bar/status-bar-state.js';
 import { TelemetryApiClient } from './telemetry/api-client.js';
 import { TelemetryBridge } from './telemetry/telemetry-bridge.js';
 import { ActivityMonitor } from './activity-monitor.js';
-import { getApiUrlConfigurationError, isTrackingEnabled } from './configuration.js';
+import {
+  getApiUrlConfigurationError,
+  isTrackingEnabled,
+  shouldSendFilePaths,
+  shouldSendSymbolNames,
+} from './configuration.js';
 import { GitContextProvider } from './git-context.js';
 import { DEVPULSE_API_KEY_SECRET } from './secret-keys.js';
 import { TRACKING_PAUSED_STORAGE_KEY } from './storage-keys.js';
@@ -98,6 +105,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const taskMonitor = new TasksMonitor(outputChannel);
     const terminalMonitor = new TerminalMonitor(outputChannel);
     const gitCommitWatcher = new GitCommitWatcher(outputChannel);
+    const workingTreeMonitor = new WorkingTreeMonitor(outputChannel);
+    const symbolMonitor = new SymbolMonitor(
+      () => shouldSendFilePaths() && shouldSendSymbolNames(),
+      outputChannel,
+    );
     const aiMonitor = new AiMonitor(outputChannel);
 
     const bridge = new TelemetryBridge(
@@ -108,6 +120,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       terminalMonitor,
       taskMonitor,
       gitCommitWatcher,
+      workingTreeMonitor,
+      symbolMonitor,
       state,
       outputChannel,
     );
@@ -121,6 +135,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       terminalMonitor,
       taskMonitor,
       gitCommitWatcher,
+      workingTreeMonitor,
+      symbolMonitor,
       aiMonitor,
       bridge,
       {
