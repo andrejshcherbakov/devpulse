@@ -2,6 +2,7 @@
 
 import { type JSX } from 'react/jsx-runtime';
 
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { SidebarHeader } from './sidebar-header';
@@ -14,6 +15,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose, isCollapsed }: SidebarProps): JSX.Element {
+  const { t } = useLanguage();
   const handleNavClick = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       onClose?.();
@@ -32,7 +34,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }: SidebarProps): JSX.Ele
 
       <aside
         data-tour="sidebar"
-        aria-label="Main Navigation"
+        aria-label={t('Main navigation')}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex flex-col',
           'border-r border-border bg-surface',

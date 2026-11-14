@@ -7,6 +7,7 @@ import { useRequireAuth } from '@/features/auth/context';
 import { RecentSessionsPanel } from '@/features/sessions/components/recent-sessions-panel';
 import { AiWorklogCard } from '@/features/worklog/components/ai-worklog-card';
 import { Page } from '@/shared/components/layout/page';
+import { useLanguage } from '@/shared/i18/language-context';
 import { toDateInput } from '@/shared/lib/date';
 
 import {
@@ -67,6 +68,7 @@ export function DashboardView({
   initialHeatmapRange = getHeatmapRange(),
 }: DashboardViewProps): JSX.Element {
   const { user } = useRequireAuth();
+  const { t } = useLanguage();
   const { data: liveStatus } = useLiveStatus();
   useLiveAnalyticsUpdates();
 
@@ -106,8 +108,8 @@ export function DashboardView({
       <section className="space-y-4">
         <SectionHeading
           index="01"
-          title="Momentum"
-          description="The headline movement in your current period."
+          title={t('Momentum')}
+          description={t('The headline movement in your current period.')}
         />
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
           <div data-tour="activity-chart" className="xl:col-span-8 [&>div]:h-full">
@@ -125,8 +127,8 @@ export function DashboardView({
       <section className="space-y-4">
         <SectionHeading
           index="02"
-          title="Patterns"
-          description="Where consistency, tools and attention accumulate over time."
+          title={t('Patterns')}
+          description={t('Where consistency, tools and attention accumulate over time.')}
         />
         <div data-tour="heatmap">
           <HeatmapPanel range={initialHeatmapRange} projectId={projectId} />
@@ -144,8 +146,8 @@ export function DashboardView({
       <section className="space-y-4">
         <SectionHeading
           index="03"
-          title="Operations"
-          description="Recent work and the systems quietly keeping it in motion."
+          title={t('Operations')}
+          description={t('Recent work and the systems quietly keeping it in motion.')}
         />
         <div data-tour="recent-sessions">
           <RecentSessionsPanel projectId={projectId} />

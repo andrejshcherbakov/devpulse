@@ -5,6 +5,7 @@ import { Clock, Code2, Layers, Zap } from 'lucide-react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Panel } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { type DateRange, useDashboardStats } from '../hooks';
 
@@ -15,6 +16,7 @@ export function DashboardSummaryCards({
   range: DateRange;
   projectId?: string;
 }): JSX.Element {
+  const { t } = useLanguage();
   const { data: stats, isLoading } = useDashboardStats(range, projectId);
 
   const activeTime = isLoading || !stats ? '—' : formatDuration(stats.totalActiveSeconds);
@@ -47,7 +49,7 @@ export function DashboardSummaryCards({
           <div className="relative">
             <div className="flex items-center justify-between gap-4">
               <p className="font-mono text-[10px] font-medium tracking-[0.18em] text-brand uppercase">
-                Active time
+                {t('Active time')}
               </p>
               <Clock className="h-4 w-4 text-brand" strokeWidth={1.5} aria-hidden="true" />
             </div>
@@ -55,7 +57,7 @@ export function DashboardSummaryCards({
               {activeTime}
             </div>
             <p className="mt-2 text-xs text-subtle">
-              Confirmed idle periods are excluded automatically
+              {t('Confirmed idle periods are excluded automatically')}
             </p>
           </div>
         </div>
@@ -68,7 +70,7 @@ export function DashboardSummaryCards({
               className="group border-b border-border p-5 last:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-subtle">{metric.label}</p>
+                <p className="text-xs font-medium text-subtle">{t(metric.label)}</p>
                 <Icon
                   className="h-3.5 w-3.5 text-subtle transition-colors group-hover:text-brand"
                   strokeWidth={1.5}
@@ -78,7 +80,7 @@ export function DashboardSummaryCards({
               <div className="mt-6 font-mono text-2xl font-medium tracking-[-0.03em] text-foreground tabular-nums">
                 {metric.value}
               </div>
-              <p className="mt-1.5 text-xs text-subtle">{metric.sub}</p>
+              <p className="mt-1.5 text-xs text-subtle">{t(metric.sub)}</p>
             </div>
           );
         })}

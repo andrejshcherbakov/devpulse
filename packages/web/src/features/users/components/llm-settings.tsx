@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { useLanguage } from '@/shared/i18/language-context';
 import type { LlmProvider } from '@/shared/types';
 
 const PROVIDER_OPTIONS: ReadonlyArray<{ value: LlmProvider; label: string }> = [
@@ -68,6 +69,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.Element {
+  const { t } = useLanguage();
   const [provider, setProvider] = useState<LlmProvider>(initial.provider);
   const [model, setModel] = useState(initial.model);
   const [baseUrl, setBaseUrl] = useState(initial.baseUrl);
@@ -104,7 +106,7 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
       await onSave(buildPatch());
       setKey('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
+      setError(err instanceof Error ? err.message : t('Failed to save settings'));
     } finally {
       setIsPending(false);
     }
@@ -117,7 +119,7 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
       await onSave({ ...buildPatch(), openaiKey: null });
       setKey('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove key');
+      setError(err instanceof Error ? err.message : t('Failed to remove key'));
     } finally {
       setIsPending(false);
     }
@@ -126,7 +128,7 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Provider">
+        <Field label={t('Provider')}>
           <Select
             value={provider}
             onValueChange={(value) => setProvider(value as LlmProvider)}
@@ -138,7 +140,7 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
             <SelectContent>
               {PROVIDER_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -146,17 +148,17 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
         </Field>
 
         <Field
-          label="Model"
+          label={t('Model')}
           hint={
             provider === 'openrouter'
-              ? 'Without a model a chain of free models is used. It is limited to a few days per run.'
+              ? t('Without a model a chain of free models is used. It is limited to a few days per run.')
               : undefined
           }
         >
           <Input
             value={model}
             onChange={(event) => setModel(event.target.value)}
-            placeholder={MODEL_PLACEHOLDER[provider]}
+            placeholder={t(MODEL_PLACEHOLDER[provider])}
             disabled={isPending}
             autoComplete="off"
           />
@@ -165,8 +167,8 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
 
       {needsBaseUrl && (
         <Field
-          label="Base URL"
-          hint="Requests are sent from the DevPulse server. A localhost address works only when the backend runs on the same machine and LLM_ALLOW_PRIVATE_BASE_URL=true."
+          label={t('Base URL')}
+          hint={t('Requests are sent from the DevPulse server. A localhost address works only when the backend runs on the same machine and LLM_ALLOW_PRIVATE_BASE_URL=true.')}
         >
           <Input
             value={baseUrl}
@@ -179,11 +181,11 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
       )}
 
       <Field
-        label="API key"
+        label={t('API key')}
         hint={
           hasKey && !providerChanged
-            ? 'A key is saved. Enter a new one to replace it.'
-            : 'Used only for your own requests.'
+            ? t('A key is saved. Enter a new one to replace it.')
+            : t('Used only for your own requests.')
         }
       >
         <Input
@@ -198,7 +200,7 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
 
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => void handleSave()} disabled={!canSave} loading={isPending}>
-          Save
+          {t('Save')}
         </Button>
         {hasKey && (
           <Button
@@ -207,14 +209,14 @@ export function LlmSettings({ initial, hasKey, onSave }: LlmSettingsProps): JSX.
             onClick={() => void handleRemoveKey()}
             disabled={isPending}
           >
-            Remove key
+            {t('Remove key')}
           </Button>
         )}
       </div>
 
       {keyProblem && (
         <p className="text-xs text-red-coral" role="alert">
-          {keyProblem}
+          {t(keyProblem)}
         </p>
       )}
       {error && (

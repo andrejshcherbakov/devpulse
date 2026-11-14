@@ -2,6 +2,7 @@
 
 import { formatDuration } from '@devpulse/lib';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, pl } from 'date-fns/locale';
 import { AlertCircle, Clock, GitBranch, GitCommit, Layers, Terminal, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { type JSX } from 'react/jsx-runtime';
@@ -16,6 +17,7 @@ import {
   PageTitle,
 } from '@/shared/components/layout/page';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { formatDateTimeLabel } from '@/shared/lib/date';
 
 import { useProject } from '../hooks';
@@ -27,18 +29,19 @@ interface ProjectDetailViewProps {
 export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.Element {
   const { data: project, isLoading, error } = useProject(projectId);
   const { user } = useRequireAuth();
+  const { locale, t } = useLanguage();
 
   if (isLoading) {
-    return <div className="p-8 text-center text-sm text-secondary">Loading project details…</div>;
+    return <div className="p-8 text-center text-sm text-secondary">{t('Loading project details…')}</div>;
   }
 
   if (error || !project) {
     return (
       <div className="p-8 text-center">
         <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-coral" strokeWidth={1.5} />
-        <p className="text-sm text-red-coral">Project not found</p>
+        <p className="text-sm text-red-coral">{t('Project not found')}</p>
         <p className="mt-1 text-xs text-secondary">
-          {error instanceof Error ? error.message : 'The project may have been deleted.'}
+          {error instanceof Error ? error.message : t('The project may have been deleted.')}
         </p>
       </div>
     );
@@ -48,11 +51,11 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
     <Page>
       <PageHeader>
         <div>
-          <PageEyebrow>Project profile</PageEyebrow>
+          <PageEyebrow>{t('Project profile')}</PageEyebrow>
           <PageHeaderHeading>
             <PageTitle>{project.name}</PageTitle>
           </PageHeaderHeading>
-          <PageDescription>{project.remote ?? 'Local repository'}</PageDescription>
+          <PageDescription>{project.remote ?? t('Local repository')}</PageDescription>
         </div>
       </PageHeader>
 
@@ -93,7 +96,7 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
               >
                 <span className="flex items-center gap-1.5 text-xs text-subtle">
                   <Icon className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-                  {metric.label}
+                  {t(metric.label)}
                 </span>
                 <span
                   className={`mt-3 block font-mono text-2xl font-semibold tracking-tight tabular-nums ${
@@ -111,11 +114,11 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel>
           <PanelHeader>
-            <PanelTitle>Languages</PanelTitle>
+            <PanelTitle>{t('Languages')}</PanelTitle>
           </PanelHeader>
           <PanelContent className="flex flex-col gap-3">
             {project.languages.length === 0 && (
-              <span className="py-4 text-center text-sm text-secondary">No language data yet</span>
+              <span className="py-4 text-center text-sm text-secondary">{t('No language data yet')}</span>
             )}
             {project.languages.map((lang) => (
               <div key={lang.name} className="flex flex-col gap-1">
@@ -138,11 +141,11 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
 
         <Panel>
           <PanelHeader>
-            <PanelTitle>Branches</PanelTitle>
+            <PanelTitle>{t('Branches')}</PanelTitle>
           </PanelHeader>
           <PanelContent className="flex flex-col">
             {project.branches.length === 0 && (
-              <span className="py-4 text-center text-sm text-secondary">No branch data yet</span>
+              <span className="py-4 text-center text-sm text-secondary">{t('No branch data yet')}</span>
             )}
             {project.branches.map((branch, i) => (
               <div
@@ -166,11 +169,11 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Recent Sessions</PanelTitle>
+          <PanelTitle>{t('Recent Sessions')}</PanelTitle>
         </PanelHeader>
         <PanelContent className="flex flex-col">
           {project.recentSessions.length === 0 && (
-            <span className="py-4 text-center text-sm text-secondary">No sessions yet</span>
+            <span className="py-4 text-center text-sm text-secondary">{t('No sessions yet')}</span>
           )}
           {project.recentSessions.map((session, i) => (
             <Link
@@ -181,7 +184,7 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
               } rounded-lg px-2 transition-colors duration-150 hover:bg-gray-alpha-50 focus-visible:ring-2 focus-visible:ring-white/15 focus-visible:outline-none`}
             >
               <div className="col-span-4 font-mono text-xs text-secondary">
-                {formatDateTimeLabel(session.startedAt, user.timezone)}
+                {formatDateTimeLabel(session.startedAt, user.timezone, locale)}
               </div>
               <div className="col-span-4 flex items-center gap-2">
                 <GitBranch className="h-3.5 w-3.5 text-subtle" strokeWidth={1.5} />
@@ -201,10 +204,13 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps): JSX.El
       </Panel>
 
       <div className="mt-2 text-right text-xs text-subtle">
-        Last active:{' '}
+        {t('Last active')}:{' '}
         {project.lastActive
-          ? formatDistanceToNow(new Date(project.lastActive), { addSuffix: true })
-          : 'Never'}
+          ? formatDistanceToNow(new Date(project.lastActive), {
+              addSuffix: true,
+              locale: locale === 'pl' ? pl : enUS,
+            })
+          : t('Never')}
       </div>
     </Page>
   );

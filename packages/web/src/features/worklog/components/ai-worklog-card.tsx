@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { toDateInput } from '@/shared/lib/date';
 import type { WorklogFormat } from '@/shared/types';
@@ -34,6 +35,7 @@ const COPIED_RESET_MS = 2000;
 
 export function AiWorklogCard(): JSX.Element {
   const { phase, plan, days, error, start, resume, cancel, regenerateDay } = useWorklogRun();
+  const { locale, t } = useLanguage();
 
   const [startDate, setStartDate] = useState(() => toDateInput(new Date()));
   const [endDate, setEndDate] = useState(() => toDateInput(new Date()));
@@ -73,15 +75,16 @@ export function AiWorklogCard(): JSX.Element {
               <Sparkles className="h-4.5 w-4.5 text-brand" strokeWidth={1.5} aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">AI Worklog</h3>
+              <h3 className="text-sm font-medium text-foreground">{t('AI Worklog')}</h3>
               <p className="mt-0.5 text-xs text-subtle">
-                Day-by-day summary for up to {String(MAX_RANGE_DAYS)} days
+                {locale === 'pl'
+                  ? `Podsumowanie dzień po dniu dla maksymalnie ${String(MAX_RANGE_DAYS)} dni`
+                  : `Day-by-day summary for up to ${String(MAX_RANGE_DAYS)} days`}
               </p>
               <p className="mt-1 max-w-xl text-xs leading-relaxed text-subtle">
-                The report groups activity into Git branch tasks and uses recent branch history,
-                observed commits, command results and sanitised relative file paths to explain the
-                purpose and progress of the work. File contents and source-code diffs are never sent
-                to your configured AI provider.
+                {t(
+                  'The report groups activity into Git branch tasks and uses recent branch history, observed commits, command results and sanitised relative file paths to explain the purpose and progress of the work. File contents and source-code diffs are never sent to your configured AI provider.',
+                )}
               </p>
             </div>
           </div>
@@ -98,13 +101,13 @@ export function AiWorklogCard(): JSX.Element {
             />
 
             <Select value={format} onValueChange={(value) => setFormat(value as WorklogFormat)}>
-              <SelectTrigger className="w-36" aria-label="Report format">
+              <SelectTrigger className="w-36" aria-label={t('Report format')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {FORMAT_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -112,7 +115,7 @@ export function AiWorklogCard(): JSX.Element {
 
             {phase === 'running' ? (
               <Button variant="outline" onClick={cancel}>
-                Stop
+                {t('Stop')}
               </Button>
             ) : (
               <Button
@@ -121,7 +124,7 @@ export function AiWorklogCard(): JSX.Element {
                 disabled={isBusy}
                 variant={days.length > 0 ? 'outline' : 'default'}
               >
-                {days.length > 0 ? 'Start over' : 'Generate'}
+                {days.length > 0 ? t('Start over') : t('Generate')}
               </Button>
             )}
           </div>
@@ -139,7 +142,7 @@ export function AiWorklogCard(): JSX.Element {
             />
             <div className="flex flex-col gap-1">
               <p className="text-[13px] font-medium text-red-coral">
-                Could not prepare the worklog
+                {t('Could not prepare the worklog')}
               </p>
               <p className="text-xs text-red-coral/80">{error}</p>
             </div>
@@ -157,10 +160,9 @@ export function AiWorklogCard(): JSX.Element {
               aria-hidden="true"
             />
             <p className="text-xs text-foreground">
-              This period has {String(plan.totals.activeDays)} active days. Your AI provider allows{' '}
-              {String(plan.limits.maxActiveDays)} per run
-              {plan.limits.tier === 'free' ? ' (free models are rate-limited)' : ''}. Pick a shorter
-              period{plan.limits.tier === 'free' ? ' or choose a paid model in Settings' : ''}.
+              {locale === 'pl'
+                ? `Ten okres ma ${String(plan.totals.activeDays)} aktywnych dni. Dostawca AI pozwala przetworzyć ${String(plan.limits.maxActiveDays)} dni w jednym raporcie${plan.limits.tier === 'free' ? ' (darmowe modele mają ograniczenia)' : ''}. Wybierz krótszy okres${plan.limits.tier === 'free' ? ' albo płatny model w Ustawieniach' : ''}.`
+                : `This period has ${String(plan.totals.activeDays)} active days. Your AI provider allows ${String(plan.limits.maxActiveDays)} per run${plan.limits.tier === 'free' ? ' (free models are rate-limited)' : ''}. Pick a shorter period${plan.limits.tier === 'free' ? ' or choose a paid model in Settings' : ''}.`}
             </p>
           </div>
         )}
@@ -179,17 +181,23 @@ export function AiWorklogCard(): JSX.Element {
                 aria-live="polite"
               >
                 <span className="font-medium text-foreground">{String(doneCount)}</span>
-                <span>of {String(days.length)} days ready</span>
+                <span>
+                  {locale === 'pl'
+                    ? `z ${String(days.length)} dni gotowych`
+                    : `of ${String(days.length)} days ready`}
+                </span>
                 {latestDone && (
-                  <span className="text-subtle/70">· latest: {latestDone.day.date}</span>
+                  <span className="text-subtle/70">
+                    · {t('latest')}: {latestDone.day.date}
+                  </span>
                 )}
-                {phase === 'running' && <span className="text-brand">· generating…</span>}
+                {phase === 'running' && <span className="text-brand">· {t('generating…')}</span>}
               </div>
 
               <div className="flex items-center gap-2">
                 {canResume && (
                   <Button size="sm" onClick={resume}>
-                    Continue
+                    {t('Continue')}
                   </Button>
                 )}
                 <Button size="sm" variant="outline" onClick={handleCopy} disabled={doneCount === 0}>
@@ -198,11 +206,11 @@ export function AiWorklogCard(): JSX.Element {
                   ) : (
                     <Copy className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
                   )}
-                  {copied ? 'Copied' : 'Copy all'}
+                  {copied ? t('Copied') : t('Copy all')}
                 </Button>
                 <Button size="sm" onClick={() => setDrawerOpen(true)}>
                   <Maximize2 className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
-                  Open full report
+                  {t('Open full report')}
                 </Button>
               </div>
             </div>

@@ -11,6 +11,7 @@ import {
   PageHeaderHeading,
   PageTitle,
 } from '@/shared/components/layout/page';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import type { DateRange } from '../hooks';
 import { EarningsSummaryCards } from './earnings-summary-cards';
@@ -21,15 +22,17 @@ interface EarningsViewProps {
 }
 
 export function EarningsView({ range30d, range7d }: EarningsViewProps): JSX.Element {
+  const { t } = useLanguage();
+
   return (
     <Page>
       <PageHeader>
         <div>
-          <PageEyebrow>Value of focus</PageEyebrow>
+          <PageEyebrow>{t('Value of focus')}</PageEyebrow>
           <PageHeaderHeading>
-            <PageTitle>Earnings</PageTitle>
+            <PageTitle>{t('Earnings')}</PageTitle>
           </PageHeaderHeading>
-          <PageDescription>Set your rate and see how much your focus is worth</PageDescription>
+          <PageDescription>{t('Set your rate and see how much your focus is worth')}</PageDescription>
         </div>
       </PageHeader>
 

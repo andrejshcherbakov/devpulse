@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { useLanguage } from '@/shared/i18/language-context';
 
 const SUPPORTED_TIMEZONES = Intl.supportedValuesOf('timeZone');
 
@@ -27,6 +28,7 @@ export function TimezonePreference({
 }: TimezonePreferenceProps): JSX.Element {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const options = useMemo(
     () =>
@@ -45,7 +47,7 @@ export function TimezonePreference({
     try {
       await onSave(values.timezone);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(err instanceof Error ? err.message : t('An unknown error occurred'));
     } finally {
       setIsPending(false);
     }
@@ -66,7 +68,7 @@ export function TimezonePreference({
                 <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select timezone" />
+                      <SelectValue placeholder={t('Select timezone')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -87,7 +89,7 @@ export function TimezonePreference({
             loading={isPending}
             size="sm"
           >
-            Save
+            {t('Save')}
           </Button>
         </form>
       </Form>

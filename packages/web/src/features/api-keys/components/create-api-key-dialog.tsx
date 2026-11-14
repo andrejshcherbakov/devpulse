@@ -23,6 +23,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 import { RadioCards, RadioCardsItem } from '@/shared/components/ui/radio-cards';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { useCreateApiKey } from '../hooks';
 
@@ -44,6 +45,7 @@ export function CreateApiKeyDialog({
   onKeyCreated,
 }: CreateApiKeyDialogProps): JSX.Element {
   const createKey = useCreateApiKey();
+  const { t } = useLanguage();
 
   const form = useForm<CreateKeyFormValues>({
     defaultValues: {
@@ -86,7 +88,7 @@ export function CreateApiKeyDialog({
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-gray-alpha-50">
               <Key className="h-5 w-5 text-subtle" strokeWidth={1.5} />
             </div>
-            Create API key
+            {t('Create API key')}
           </DialogTitle>
         </DialogHeader>
 
@@ -97,20 +99,20 @@ export function CreateApiKeyDialog({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Key type</FormLabel>
+                  <FormLabel>{t('Key type')}</FormLabel>
                   <FormControl>
                     <RadioCards value={field.value} onValueChange={field.onChange}>
                       <RadioCardsItem
                         value="extension"
                         icon={Terminal}
-                        title="Extension"
-                        description="Upload telemetry from VS Code"
+                        title={t('Extension')}
+                        description={t('Upload telemetry from VS Code')}
                       />
                       <RadioCardsItem
                         value="integration"
                         icon={Blocks}
-                        title="Integration"
-                        description="Read analytics from external systems"
+                        title={t('Integration')}
+                        description={t('Read analytics from external systems')}
                       />
                     </RadioCards>
                   </FormControl>
@@ -122,10 +124,10 @@ export function CreateApiKeyDialog({
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: 'Name is required' }}
+              rules={{ required: t('Name is required') }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t('Name')}</FormLabel>
                   <FormControl>
                     <Input
                       autoFocus
@@ -146,9 +148,9 @@ export function CreateApiKeyDialog({
                 name="deviceLabel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Device label (optional)</FormLabel>
+                    <FormLabel>{t('Device label (optional)')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Work Laptop" {...field} />
+                      <Input placeholder={t('e.g. Work Laptop')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,10 +160,10 @@ export function CreateApiKeyDialog({
 
             <DialogFooter className="mt-6 gap-2">
               <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
+                {t('Cancel')}
               </Button>
               <Button type="submit" loading={createKey.isPending}>
-                Create key
+                {t('Create key')}
               </Button>
             </DialogFooter>
           </form>

@@ -4,6 +4,7 @@ import { type JSX } from 'react/jsx-runtime';
 import type { TooltipRenderProps } from 'react-joyride';
 
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 export function TourTooltip({
@@ -17,6 +18,7 @@ export function TourTooltip({
   tooltipProps,
 }: TooltipRenderProps): JSX.Element {
   const isFirst = index === 0;
+  const { t } = useLanguage();
 
   return (
     <div
@@ -48,18 +50,18 @@ export function TourTooltip({
           <span />
         ) : (
           <Button type="button" variant="ghost" {...skipProps}>
-            Skip
+            {t('Skip')}
           </Button>
         )}
 
         <div className="flex items-center gap-2">
           {!isFirst && (
             <Button type="button" variant="outline" {...backProps}>
-              Back
+              {t('Back')}
             </Button>
           )}
           <Button type="button" {...primaryProps}>
-            {isLastStep ? 'Done' : 'Next'}
+            {isLastStep ? t('Done') : t('Next')}
           </Button>
         </div>
       </div>

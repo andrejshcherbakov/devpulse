@@ -12,6 +12,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateLabel, parseDateInput, toDateInput } from '@/shared/lib/date';
 
@@ -69,7 +70,11 @@ interface YearGrid {
   months: Array<MonthMarker>;
 }
 
-function buildYearGrid(year: number, seriesByDate: Map<string, number>): YearGrid {
+function buildYearGrid(
+  year: number,
+  seriesByDate: Map<string, number>,
+  locale: 'en' | 'pl',
+): YearGrid {
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31);
 
@@ -97,7 +102,10 @@ function buildYearGrid(year: number, seriesByDate: Map<string, number>): YearGri
     const inYear = d.getFullYear() === year;
 
     if (inYear && d.getDate() === 1) {
-      months.push({ week, label: d.toLocaleString('en-US', { month: 'short' }) });
+      months.push({
+        week,
+        label: d.toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US', { month: 'short' }),
+      });
     }
 
     cells.push({
@@ -163,6 +171,7 @@ interface HeatmapPanelProps {
 }
 
 export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Element | null {
+  const { locale, t } = useLanguage();
   const { data: series = [], isLoading } = useAnalyticsTimeseries(range, projectId);
 
   const seriesByDate = useMemo(() => {
@@ -198,8 +207,8 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
   }, [series, userSelectedYear]);
 
   const grid = useMemo(
-    () => buildYearGrid(effectiveYear, seriesByDate),
-    [effectiveYear, seriesByDate],
+    () => buildYearGrid(effectiveYear, seriesByDate, locale),
+    [effectiveYear, locale, seriesByDate],
   );
 
   const streaks = useMemo(() => computeStreaks(grid.cells), [grid.cells]);
@@ -231,13 +240,13 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
       <Panel>
         <PanelHeader>
           <div>
-            <PanelTitle>Activity heatmap</PanelTitle>
-            <PanelDescription>Daily coding intensity</PanelDescription>
+            <PanelTitle>{t('Activity heatmap')}</PanelTitle>
+            <PanelDescription>{t('Daily coding intensity')}</PanelDescription>
           </div>
         </PanelHeader>
         <PanelContent>
           <div className="py-12 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         </PanelContent>
       </Panel>
@@ -258,11 +267,15 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>Activity heatmap</PanelTitle>
+          <PanelTitle>{t('Activity heatmap')}</PanelTitle>
           <PanelDescription>
             {isEmptyYear
-              ? `No activity in ${String(effectiveYear)}`
-              : `${String(streaks.activeDays)} active days in ${String(effectiveYear)}`}
+              ? locale === 'pl'
+                ? `Brak aktywności w ${String(effectiveYear)} roku`
+                : `No activity in ${String(effectiveYear)}`
+              : locale === 'pl'
+                ? `${String(streaks.activeDays)} aktywnych dni w ${String(effectiveYear)} roku`
+                : `${String(streaks.activeDays)} active days in ${String(effectiveYear)}`}
           </PanelDescription>
         </div>
 
@@ -306,7 +319,7 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
                 </text>
               ))}
 
-              {(['Mon', 'Wed', 'Fri'] as const).map((label, i) => (
+              {(locale === 'pl' ? ['Pon', 'Śr', 'Pt'] : ['Mon', 'Wed', 'Fri']).map((label, i) => (
                 <text
                   key={label}
                   x={0}
@@ -337,8 +350,8 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
                         fill={fillFor(level)}
                         className="cursor-pointer"
                         role="button"
-                        aria-label={`${formatDateLabel(parseDateInput(c.date))}: ${
-                          c.seconds > 0 ? formatDuration(c.seconds) : 'no activity'
+                        aria-label={`${formatDateLabel(parseDateInput(c.date), locale)}: ${
+                          c.seconds > 0 ? formatDuration(c.seconds) : t('no activity')
                         }`}
                         onMouseEnter={(e) => {
                           setHoveredCell({
@@ -379,25 +392,29 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
             {displayedCell ? (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium text-foreground">
-                  {formatDateLabel(parseDateInput(displayedCell.date))}
+                  {formatDateLabel(parseDateInput(displayedCell.date), locale)}
                 </span>
                 <span className="text-subtle">·</span>
                 <span className="font-mono text-foreground tabular-nums">
                   {displayedCell.seconds > 0
                     ? formatDuration(displayedCell.seconds)
-                    : 'no activity'}
+                    : t('no activity')}
                 </span>
                 {selectedDate === displayedCell.date && (
                   <span className="rounded-full border border-brand/30 bg-brand-soft px-2 py-0.5 text-[10px] font-medium text-brand">
-                    pinned
+                    {t('pinned')}
                   </span>
                 )}
               </div>
             ) : (
               <span className="text-subtle">
                 {isEmptyYear
-                  ? `No activity in ${String(effectiveYear)}`
-                  : `${String(streaks.activeDays)} active days · ${formatDuration(totalSeconds)} total in ${String(effectiveYear)}`}
+                  ? locale === 'pl'
+                    ? `Brak aktywności w ${String(effectiveYear)} roku`
+                    : `No activity in ${String(effectiveYear)}`
+                  : locale === 'pl'
+                    ? `${String(streaks.activeDays)} aktywnych dni · ${formatDuration(totalSeconds)} łącznie w ${String(effectiveYear)} roku`
+                    : `${String(streaks.activeDays)} active days · ${formatDuration(totalSeconds)} total in ${String(effectiveYear)}`}
               </span>
             )}
           </div>
@@ -405,23 +422,23 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-xs text-subtle">
               <span>
-                <span className="text-secondary">Current streak:</span>{' '}
+                <span className="text-secondary">{t('Current streak:')}</span>{' '}
                 <span className="font-mono text-foreground tabular-nums">
                   {streaks.currentStreak}
                 </span>{' '}
-                {streaks.currentStreak === 1 ? 'day' : 'days'}
+                {streaks.currentStreak === 1 ? t('day') : t('days')}
               </span>
               <span>
-                <span className="text-secondary">Longest:</span>{' '}
+                <span className="text-secondary">{t('Longest:')}</span>{' '}
                 <span className="font-mono text-foreground tabular-nums">
                   {streaks.longestStreak}
                 </span>{' '}
-                {streaks.longestStreak === 1 ? 'day' : 'days'}
+                {streaks.longestStreak === 1 ? t('day') : t('days')}
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-xs text-subtle">
-              <span>Less</span>
+              <span>{t('Less')}</span>
               {[0, 1, 2, 3, 4].map((l) => (
                 <span
                   key={l}
@@ -429,7 +446,7 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
                   style={{ backgroundColor: fillFor(l as 0 | 1 | 2 | 3 | 4) }}
                 />
               ))}
-              <span>More</span>
+              <span>{t('More')}</span>
             </div>
           </div>
         </div>
@@ -446,12 +463,12 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
             }}
           >
             <div className="font-medium text-foreground">
-              {formatDateLabel(parseDateInput(hoveredCell.cell.date))}
+              {formatDateLabel(parseDateInput(hoveredCell.cell.date), locale)}
             </div>
             <div className="mt-0.5 font-mono text-[11px] text-subtle tabular-nums">
               {hoveredCell.cell.seconds > 0
                 ? formatDuration(hoveredCell.cell.seconds)
-                : 'no activity'}
+                : t('no activity')}
             </div>
           </div>,
           document.body,

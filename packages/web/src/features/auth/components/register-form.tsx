@@ -20,37 +20,48 @@ import {
   FormMessage,
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
+import { useLanguage } from '@/shared/i18/language-context';
 import { getErrorMessage } from '@/shared/lib/error';
 
 import { useAuth } from '../context';
 
-const registerSchema = z.object({
-  displayName: z
-    .string()
-    .min(3, 'Minimum 3 characters')
-    .max(20, 'Maximum 20 characters')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers and underscores allowed'),
-  email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
+interface RegisterValues {
+  displayName: string;
+  email: string;
+  password: string;
+}
 
-const verifySchema = z.object({
-  code: z.string().length(6, 'Verification code must be exactly 6 characters'),
-});
+interface VerifyValues {
+  code: string;
+}
 
 export function RegisterForm(): JSX.Element {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState<'register' | 'verify'>('register');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
+  const registerSchema = z.object({
+    displayName: z
+      .string()
+      .min(3, t('Minimum 3 characters'))
+      .max(20, t('Maximum 20 characters'))
+      .regex(/^[a-zA-Z0-9_]+$/, t('Only letters, numbers and underscores allowed')),
+    email: z.string().email(t('Invalid email')),
+    password: z.string().min(8, t('Password must be at least 8 characters')),
+  });
+  const verifySchema = z.object({
+    code: z.string().length(6, t('Verification code must be exactly 6 characters')),
+  });
+
+  const registerForm = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { displayName: '', email: '', password: '' },
   });
 
-  const verifyForm = useForm<z.infer<typeof verifySchema>>({
+  const verifyForm = useForm<VerifyValues>({
     resolver: zodResolver(verifySchema),
     defaultValues: { code: '' },
   });
@@ -61,7 +72,7 @@ export function RegisterForm(): JSX.Element {
     }
   }, [step, verifyForm]);
 
-  const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
+  const onRegisterSubmit = async (values: RegisterValues) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -74,7 +85,7 @@ export function RegisterForm(): JSX.Element {
     }
   };
 
-  const onVerifySubmit = async (values: z.infer<typeof verifySchema>) => {
+  const onVerifySubmit = async (values: VerifyValues) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -115,8 +126,8 @@ export function RegisterForm(): JSX.Element {
   const renderRegisterForm = () => (
     <>
       <div className="text-center lg:text-left">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground">Create account</h2>
-        <p className="mt-1 text-sm text-secondary">Enter your details to create an account</p>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">{t('Create account')}</h2>
+        <p className="mt-1 text-sm text-secondary">{t('Enter your details to create an account')}</p>
       </div>
 
       <Form {...registerForm}>
@@ -126,7 +137,7 @@ export function RegisterForm(): JSX.Element {
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{t('Username')}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="johndoe"
@@ -145,7 +156,7 @@ export function RegisterForm(): JSX.Element {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t('Email')}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="john@example.com"
@@ -164,7 +175,7 @@ export function RegisterForm(): JSX.Element {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t('Password')}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -180,19 +191,19 @@ export function RegisterForm(): JSX.Element {
           />
 
           <Button type="submit" className="mt-2 w-full" loading={isLoading}>
-            Continue
+            {t('Continue')}
           </Button>
         </form>
       </Form>
 
       <p className="flex items-center justify-center gap-1 text-center text-sm text-secondary">
-        Already have an account?
+        {t('Already have an account?')}
         <Button
           variant="link"
           asChild
           className="h-auto p-0 font-medium no-underline hover:text-brand"
         >
-          <Link href="/login">Log in</Link>
+          <Link href="/login">{t('Log in')}</Link>
         </Button>
       </p>
     </>
@@ -201,8 +212,8 @@ export function RegisterForm(): JSX.Element {
   const renderVerifyForm = () => (
     <>
       <div className="text-center lg:text-left">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground">Email verification</h2>
-        <p className="mt-1 text-sm text-secondary">Enter the 6-digit code sent to your email</p>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">{t('Email verification')}</h2>
+        <p className="mt-1 text-sm text-secondary">{t('Enter the 6-digit code sent to your email')}</p>
       </div>
 
       <Form {...verifyForm}>
@@ -212,7 +223,7 @@ export function RegisterForm(): JSX.Element {
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Verification code</FormLabel>
+                <FormLabel>{t('Verification code')}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="123456"
@@ -228,13 +239,13 @@ export function RegisterForm(): JSX.Element {
           />
 
           <Button type="submit" className="mt-2 w-full" loading={isLoading}>
-            Verify & create
+            {t('Verify & create')}
           </Button>
         </form>
       </Form>
 
       <p className="flex items-center justify-center gap-1 text-center text-sm text-secondary">
-        Didn&apos;t receive the email?
+        {t("Didn't receive the email?")}
         <Button
           variant="link"
           type="button"
@@ -242,7 +253,7 @@ export function RegisterForm(): JSX.Element {
           disabled={isLoading}
           className="h-auto p-0 font-medium no-underline hover:text-brand"
         >
-          Resend code
+          {t('Resend code')}
         </Button>
       </p>
     </>

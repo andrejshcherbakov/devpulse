@@ -5,6 +5,7 @@ import { type JSX } from 'react/jsx-runtime';
 
 import { useRequireAuth } from '@/features/auth/context';
 import { Panel } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { type DateRange, useDashboardStats } from '../hooks';
@@ -19,6 +20,7 @@ export function EarningsSummaryCards({
   range7d,
 }: EarningsSummaryCardsProps): JSX.Element {
   const { user } = useRequireAuth();
+  const { locale, t } = useLanguage();
 
   const { data: stats30d } = useDashboardStats(range30d);
   const { data: stats7d } = useDashboardStats(range7d);
@@ -33,21 +35,21 @@ export function EarningsSummaryCards({
     {
       label: 'This week',
       icon: Clock,
-      value: `${earnedThisWeek.toLocaleString('en-US', { maximumFractionDigits: 0 })} ${user.currency}`,
-      sub: `${activeHoursThisWeek}h active coding`,
+      value: `${earnedThisWeek.toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US', { maximumFractionDigits: 0 })} ${user.currency}`,
+      sub: locale === 'pl' ? `${activeHoursThisWeek}h aktywnego kodowania` : `${activeHoursThisWeek}h active coding`,
       accent: false,
     },
     {
       label: 'This month (30d)',
       icon: TrendingUp,
-      value: `${earnedThisMonth.toLocaleString('en-US', { maximumFractionDigits: 0 })} ${user.currency}`,
-      sub: `${activeHoursThisMonth}h active coding`,
+      value: `${earnedThisMonth.toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US', { maximumFractionDigits: 0 })} ${user.currency}`,
+      sub: locale === 'pl' ? `${activeHoursThisMonth}h aktywnego kodowania` : `${activeHoursThisMonth}h active coding`,
       accent: true,
     },
     {
       label: 'Effective hourly',
       icon: DollarSign,
-      value: `${user.hourlyRate.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${user.currency}`,
+      value: `${user.hourlyRate.toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US', { maximumFractionDigits: 2 })} ${user.currency}`,
       sub: 'Based on your saved rate',
       accent: false,
     },
@@ -69,7 +71,7 @@ export function EarningsSummaryCards({
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-subtle">{card.label}</p>
+                  <p className="text-xs font-medium text-subtle">{t(card.label)}</p>
                   <Icon className="h-4 w-4 text-subtle" strokeWidth={1.5} aria-hidden="true" />
                 </div>
                 <p
@@ -81,7 +83,7 @@ export function EarningsSummaryCards({
                   {card.value}
                 </p>
               </div>
-              <p className="mt-2 text-xs text-subtle">{card.sub}</p>
+              <p className="mt-2 text-xs text-subtle">{t(card.sub)}</p>
             </div>
           );
         })}

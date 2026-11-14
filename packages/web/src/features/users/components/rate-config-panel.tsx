@@ -16,9 +16,11 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { useLanguage } from '@/shared/i18/language-context';
 
 export function RateConfigPanel(): JSX.Element {
   const { user, updateProfile } = useRequireAuth();
+  const { t } = useLanguage();
 
   const [rateType, setRateType] = useState<'hourly' | 'monthly'>('hourly');
   const [rateInput, setRateInput] = useState<string>(user.hourlyRate.toString());
@@ -56,20 +58,20 @@ export function RateConfigPanel(): JSX.Element {
   return (
     <Panel className="h-full">
       <PanelHeader>
-        <PanelTitle>Rate configuration</PanelTitle>
+        <PanelTitle>{t('Rate configuration')}</PanelTitle>
       </PanelHeader>
 
       <PanelContent>
         <div className="flex flex-wrap items-end gap-5">
           <div className="flex flex-col gap-2">
-            <Label>Type</Label>
+            <Label>{t('Type')}</Label>
             <Tabs value={rateType} onValueChange={handleRateTypeChange}>
-              <TabsList aria-label="Select rate type">
+              <TabsList aria-label={t('Select rate type')}>
                 <TabsTrigger value="hourly" disabled={isSaving}>
-                  Hourly
+                  {t('Hourly')}
                 </TabsTrigger>
                 <TabsTrigger value="monthly" disabled={isSaving}>
-                  Monthly
+                  {t('Monthly')}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -77,14 +79,14 @@ export function RateConfigPanel(): JSX.Element {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="rate-amount">
-              {rateType === 'hourly' ? 'Hourly rate' : 'Monthly rate'}
+              {rateType === 'hourly' ? t('Hourly rate') : t('Monthly rate')}
             </Label>
 
             <div className="flex items-center gap-2">
               <div className="w-28">
                 <Select value={currencyInput} onValueChange={setCurrencyInput} disabled={isSaving}>
-                  <SelectTrigger aria-label="Select currency">
-                    <SelectValue placeholder="Currency" />
+                  <SelectTrigger aria-label={t('Select currency')}>
+                    <SelectValue placeholder={t('Currency')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="USD">USD ($)</SelectItem>
@@ -107,7 +109,7 @@ export function RateConfigPanel(): JSX.Element {
               />
 
               <Button onClick={handleSave} loading={isSaving} disabled={isSaving || !isRateValid}>
-                Save
+                {t('Save')}
               </Button>
             </div>
           </div>

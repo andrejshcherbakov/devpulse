@@ -9,9 +9,11 @@ import { type JSX } from 'react/jsx-runtime';
 import { Button } from '@/shared/components/ui/button';
 import { inputVariants } from '@/shared/components/ui/input';
 import { UserMenu } from '@/shared/components/ui/user-menu';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { CommandMenu } from '../ui/command-menu';
+import { LanguageSwitcher } from './language-switcher';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -29,15 +31,31 @@ export function Header({
   const pathname = usePathname();
   const [isCommandOpen, setIsCommandOpen] = useState(false);
 
-  const getPageTitle = () => {
-    if (pathname === '/') return 'Dashboard';
-    if (pathname.startsWith('/projects')) return 'Projects';
-    if (pathname.startsWith('/sessions')) return 'Sessions';
-    if (pathname.startsWith('/earnings')) return 'Earnings';
-    if (pathname.startsWith('/settings')) return 'Settings';
-    return 'DevPulse';
-  };
+  const { copy, t } = useLanguage();
 
+  const getPageTitle = (): string => {
+    if (pathname === '/') {
+      return copy.pageTitles.dashboard;
+    }
+
+    if (pathname.startsWith('/projects')) {
+      return copy.pageTitles.projects;
+    }
+
+    if (pathname.startsWith('/sessions')) {
+      return copy.pageTitles.sessions;
+    }
+
+    if (pathname.startsWith('/earnings')) {
+      return copy.pageTitles.earnings;
+    }
+
+    if (pathname.startsWith('/settings')) {
+      return copy.pageTitles.settings;
+    }
+
+    return copy.pageTitles.fallback;
+  };
   return (
     <header
       className={cn(
@@ -63,7 +81,7 @@ export function Header({
             size="icon"
             onClick={onToggleSidebar}
             className="hidden h-8 w-8 text-secondary transition-colors hover:text-foreground lg:flex"
-            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isSidebarCollapsed ? t('Expand sidebar') : t('Collapse sidebar')}
           >
             <PanelLeft className="h-4 w-4" strokeWidth={1.5} />
           </Button>
@@ -82,7 +100,7 @@ export function Header({
           >
             <div className="flex min-w-0 items-center gap-2">
               <Search className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-              <span className="truncate text-[13px]">Search everything…</span>
+              <span className="truncate text-[13px]">{copy.searchPlaceholder}</span>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
               <kbd className="mono-sm hidden h-5 items-center justify-center rounded-md border border-border bg-background px-1.5 text-[10px] text-subtle sm:inline-flex">
@@ -96,9 +114,10 @@ export function Header({
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-3">
+          <LanguageSwitcher />
           <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
             <Link href="/docs" target="_blank" rel="noreferrer">
-              Docs
+              {copy.docs}
             </Link>
           </Button>
           <UserMenu />

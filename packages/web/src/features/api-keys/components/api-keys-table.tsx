@@ -1,9 +1,11 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, pl } from 'date-fns/locale';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { type ApiKeySummary } from '@/shared/types';
 
@@ -20,6 +22,7 @@ export function ApiKeysTable({
   onRevoke,
   isRevoking,
 }: ApiKeysTableProps): JSX.Element {
+  const { locale, t } = useLanguage();
   if (list.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-surface p-6 text-center">
@@ -31,10 +34,10 @@ export function ApiKeysTable({
   return (
     <div className="flex flex-col">
       <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-3 text-xs font-medium tracking-wider text-subtle uppercase">
-        <div className="col-span-4">Name</div>
-        <div className="col-span-3">Device</div>
-        <div className="col-span-3">Created</div>
-        <div className="col-span-2 text-right">Actions</div>
+        <div className="col-span-4">{t('Name')}</div>
+        <div className="col-span-3">{t('Device')}</div>
+        <div className="col-span-3">{t('Created')}</div>
+        <div className="col-span-2 text-right">{t('Actions')}</div>
       </div>
 
       {list.map((key, i) => (
@@ -62,12 +65,18 @@ export function ApiKeysTable({
 
           <div className="col-span-3 flex flex-col gap-0.5" suppressHydrationWarning>
             <span className="text-sm text-secondary">
-              {formatDistanceToNow(new Date(key.createdAt), { addSuffix: true })}
+              {formatDistanceToNow(new Date(key.createdAt), {
+                addSuffix: true,
+                locale: locale === 'pl' ? pl : enUS,
+              })}
             </span>
             <span className="text-xs text-subtle">
               {key.lastUsedAt !== null
-                ? `Used ${formatDistanceToNow(new Date(key.lastUsedAt), { addSuffix: true })}`
-                : 'Never used'}
+                ? `${t('Used')} ${formatDistanceToNow(new Date(key.lastUsedAt), {
+                    addSuffix: true,
+                    locale: locale === 'pl' ? pl : enUS,
+                  })}`
+                : t('Never used')}
             </span>
           </div>
 
@@ -78,7 +87,7 @@ export function ApiKeysTable({
               onClick={() => onRevoke(key.id)}
               disabled={isRevoking}
             >
-              Revoke
+              {t('Revoke')}
             </Button>
           </div>
         </div>

@@ -10,37 +10,39 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { useLanguagesBreakdown } from '../hooks';
 
 export function LanguagesPanel({ projectId }: { projectId?: string }): JSX.Element {
   const { data, isLoading } = useLanguagesBreakdown(projectId);
+  const { t } = useLanguage();
 
   return (
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>Languages</PanelTitle>
-          <PanelDescription>Your technology stack</PanelDescription>
+          <PanelTitle>{t('Languages')}</PanelTitle>
+          <PanelDescription>{t('Your technology stack')}</PanelDescription>
         </div>
       </PanelHeader>
 
       <PanelContent className="flex flex-col">
         <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-          <div className="col-span-8">Language</div>
-          <div className="col-span-4 text-right">Active Time</div>
+          <div className="col-span-8">{t('Language')}</div>
+          <div className="col-span-4 text-right">{t('Active Time')}</div>
         </div>
 
         {isLoading && (
           <div className="py-8 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         )}
 
         {!isLoading && (!data || data.languages.length === 0) && (
           <div className="py-8 text-center">
-            <span className="text-sm text-secondary">No data</span>
+            <span className="text-sm text-secondary">{t('No data')}</span>
           </div>
         )}
 

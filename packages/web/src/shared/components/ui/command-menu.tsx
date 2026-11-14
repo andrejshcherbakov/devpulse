@@ -7,6 +7,7 @@ import { useCallback, useEffect } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 interface CommandMenuProps {
@@ -16,6 +17,7 @@ interface CommandMenuProps {
 
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps): JSX.Element {
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -40,7 +42,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps): JSX.Eleme
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl overflow-hidden p-0">
-        <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
+        <DialogTitle className="sr-only">{t('Navigation Menu')}</DialogTitle>
 
         <Command
           className={cn(
@@ -51,44 +53,44 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps): JSX.Eleme
           <div className="flex items-center border-b border-border px-3">
             <Command.Input
               className="flex h-12 w-full bg-transparent py-3 text-sm text-foreground outline-none placeholder:text-subtle"
-              placeholder="Type a command or search..."
+              placeholder={t('Type a command or search...')}
             />
           </div>
 
           <Command.List className="max-h-75 overflow-x-hidden overflow-y-auto p-1.5">
             <Command.Empty className="py-6 text-center text-sm text-subtle">
-              No results found.
+              {t('No results found.')}
             </Command.Empty>
 
-            <Command.Group heading="Pages" className="px-0 py-1">
+            <Command.Group heading={t('Pages')} className="px-0 py-1">
               <CommandItem onSelect={() => runCommand(() => router.push('/'))}>
                 <LayoutDashboard className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Dashboard
+                {t('Dashboard')}
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => router.push('/projects'))}>
                 <FolderGit2 className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Projects
+                {t('Projects')}
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => router.push('/sessions'))}>
                 <Clock className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Sessions
+                {t('Sessions')}
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => router.push('/earnings'))}>
                 <DollarSign className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Earnings
+                {t('Earnings')}
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => router.push('/settings'))}>
                 <Settings className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Settings
+                {t('Settings')}
               </CommandItem>
             </Command.Group>
 
             <Command.Separator className="mx-2 my-1 h-px bg-border" />
 
-            <Command.Group heading="External" className="px-0 py-1">
+            <Command.Group heading={t('External')} className="px-0 py-1">
               <CommandItem onSelect={() => runCommand(() => router.push('/docs'))}>
                 <BookOpen className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} />
-                Docs and resources
+                {t('Docs and resources')}
               </CommandItem>
             </Command.Group>
           </Command.List>

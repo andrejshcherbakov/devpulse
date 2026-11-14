@@ -34,6 +34,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateTimeLabel, formatTimeRange } from '@/shared/lib/date';
 
@@ -71,6 +72,7 @@ function focusColorClass(score: number): string {
 export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
   const { user } = useRequireAuth();
   const router = useRouter();
+  const { locale, t } = useLanguage();
   const { data, isLoading, error } = useSessionDetail(id);
 
   const backButton = (
@@ -79,7 +81,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
       className="inline-flex items-center gap-1.5 text-xs text-secondary transition-colors hover:text-foreground"
     >
       <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
-      Back
+      {t('Back')}
     </button>
   );
 
@@ -87,7 +89,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
     return (
       <Page>
         <div className="py-16 text-center">
-          <span className="animate-pulse text-sm text-secondary">Loading session…</span>
+          <span className="animate-pulse text-sm text-secondary">{t('Loading session…')}</span>
         </div>
       </Page>
     );
@@ -98,13 +100,13 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
       <Page>
         <div className="py-16 text-center">
           <p className="text-sm text-red-coral">
-            {error instanceof Error ? error.message : 'Session not found'}
+            {error instanceof Error ? error.message : t('Session not found')}
           </p>
           <Link
             href="/sessions"
             className="mt-3 inline-block text-xs text-secondary hover:text-foreground"
           >
-            Back to sessions
+            {t('Back to sessions')}
           </Link>
         </div>
       </Page>
@@ -124,13 +126,13 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
       <PageHeader>
         <div>
           <div className="mb-2">{backButton}</div>
-          <PageEyebrow>Session detail</PageEyebrow>
+          <PageEyebrow>{t('Session detail')}</PageEyebrow>
           <PageHeaderHeading>
-            <PageTitle>{data.projectName ?? 'Unknown project'}</PageTitle>
+            <PageTitle>{data.projectName ?? t('Unknown project')}</PageTitle>
           </PageHeaderHeading>
           <PageDescription>
-            {formatDateTimeLabel(data.startedAt, user.timezone)} ·{' '}
-            {formatTimeRange(data.startedAt, data.endedAt, user.timezone)}
+            {formatDateTimeLabel(data.startedAt, user.timezone, locale)} ·{' '}
+            {formatTimeRange(data.startedAt, data.endedAt, user.timezone, locale)}
           </PageDescription>
         </div>
       </PageHeader>
@@ -181,7 +183,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-subtle">{card.label}</p>
+                    <p className="text-xs font-medium text-subtle">{t(card.label)}</p>
                     <Icon className="h-4 w-4 text-subtle" strokeWidth={1.5} aria-hidden="true" />
                   </div>
                   <div className="mt-2 flex items-baseline gap-2">
@@ -195,7 +197,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
                     </span>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-subtle">{card.sub}</p>
+                <p className="mt-2 text-xs text-subtle">{t(card.sub)}</p>
               </div>
             );
           })}
@@ -206,8 +208,8 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
         <Panel className={cn(languages.length === 0 && 'lg:col-span-2')}>
           <PanelHeader>
             <div>
-              <PanelTitle>Context</PanelTitle>
-              <PanelDescription>Where and when this session happened</PanelDescription>
+              <PanelTitle>{t('Context')}</PanelTitle>
+              <PanelDescription>{t('Where and when this session happened')}</PanelDescription>
             </div>
           </PanelHeader>
           <PanelContent>
@@ -215,7 +217,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
               <div className="flex items-start gap-2">
                 <FolderGit2 className="mt-0.5 h-4 w-4 shrink-0 text-subtle" strokeWidth={1.5} />
                 <div>
-                  <dt className="text-xs text-subtle">Project</dt>
+                  <dt className="text-xs text-subtle">{t('Project')}</dt>
                   <dd className="mt-0.5 text-foreground">{data.projectName ?? '—'}</dd>
                 </div>
               </div>
@@ -223,7 +225,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
               <div className="flex items-start gap-2">
                 <GitBranch className="mt-0.5 h-4 w-4 shrink-0 text-subtle" strokeWidth={1.5} />
                 <div>
-                  <dt className="text-xs text-subtle">Branch</dt>
+                  <dt className="text-xs text-subtle">{t('Branch')}</dt>
                   <dd className="mt-0.5 font-mono text-foreground">{data.gitBranch ?? '—'}</dd>
                 </div>
               </div>
@@ -231,9 +233,9 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
               <div className="flex items-start gap-2">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0 text-subtle" strokeWidth={1.5} />
                 <div>
-                  <dt className="text-xs text-subtle">Started</dt>
+                  <dt className="text-xs text-subtle">{t('Started')}</dt>
                   <dd className="mt-0.5 text-foreground">
-                    {formatDateTimeLabel(data.startedAt, user.timezone)}
+                    {formatDateTimeLabel(data.startedAt, user.timezone, locale)}
                   </dd>
                 </div>
               </div>
@@ -241,7 +243,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
               <div className="flex items-start gap-2">
                 <Play className="mt-0.5 h-4 w-4 shrink-0 text-subtle" strokeWidth={1.5} />
                 <div>
-                  <dt className="text-xs text-subtle">Status</dt>
+                  <dt className="text-xs text-subtle">{t('Status')}</dt>
                   <dd className="mt-0.5 text-foreground capitalize">{data.status}</dd>
                 </div>
               </div>
@@ -253,8 +255,8 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
           <Panel>
             <PanelHeader>
               <div>
-                <PanelTitle>Languages</PanelTitle>
-                <PanelDescription>Time spent per language in this session</PanelDescription>
+                <PanelTitle>{t('Languages')}</PanelTitle>
+                <PanelDescription>{t('Time spent per language in this session')}</PanelDescription>
               </div>
             </PanelHeader>
             <PanelContent>
@@ -288,23 +290,25 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
       <Panel>
         <PanelHeader>
           <div>
-            <PanelTitle>Terminal activity</PanelTitle>
+            <PanelTitle>{t('Terminal activity')}</PanelTitle>
             <PanelDescription>
               {commands.length === 0
-                ? 'Commands you ran in this session'
-                : `${commands.length} commands`}
+                ? t('Commands you ran in this session')
+                : locale === 'pl'
+                  ? `${commands.length} poleceń`
+                  : `${commands.length} commands`}
             </PanelDescription>
           </div>
         </PanelHeader>
         <PanelContent>
           {commands.length === 0 ? (
-            <div className="py-6 text-center text-sm text-secondary">No commands recorded</div>
+            <div className="py-6 text-center text-sm text-secondary">{t('No commands recorded')}</div>
           ) : (
             <div className="flex flex-col">
               <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-                <div className="col-span-7">Command</div>
-                <div className="col-span-2 text-right">Duration</div>
-                <div className="col-span-3 text-right">Exit</div>
+                <div className="col-span-7">{t('Command')}</div>
+                <div className="col-span-2 text-right">{t('Duration')}</div>
+                <div className="col-span-3 text-right">{t('Exit')}</div>
               </div>
 
               {commands.map((cmd, i) => {
@@ -358,9 +362,11 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
         <Panel>
           <PanelHeader>
             <div>
-              <PanelTitle>Commits</PanelTitle>
+              <PanelTitle>{t('Commits')}</PanelTitle>
               <PanelDescription>
-                {data.commitsCount} {data.commitsCount === 1 ? 'commit' : 'commits'} in this session
+                {locale === 'pl'
+                  ? `${data.commitsCount} ${data.commitsCount === 1 ? 'commit' : 'commitów'} w tej sesji`
+                  : `${data.commitsCount} ${data.commitsCount === 1 ? 'commit' : 'commits'} in this session`}
               </PanelDescription>
             </div>
           </PanelHeader>
@@ -382,7 +388,7 @@ export function SessionDetailView({ id }: SessionDetailViewProps): JSX.Element {
                       </span>
                       <span className="font-mono text-xs text-subtle">
                         {commit.hash.slice(0, 7)} · {commit.filesChanged}{' '}
-                        {commit.filesChanged === 1 ? 'file' : 'files'}
+                        {commit.filesChanged === 1 ? t('file') : t('files')}
                       </span>
                     </div>
                   </div>

@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { type DateRange, useBranchesDistribution } from '../hooks';
@@ -23,31 +24,32 @@ export function BranchesPanel({
   projectId?: string;
 }): JSX.Element {
   const { data: branches = [], isLoading } = useBranchesDistribution(range, projectId);
+  const { t } = useLanguage();
 
   return (
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>Branches</PanelTitle>
-          <PanelDescription>Where you spent time</PanelDescription>
+          <PanelTitle>{t('Branches')}</PanelTitle>
+          <PanelDescription>{t('Where you spent time')}</PanelDescription>
         </div>
       </PanelHeader>
 
       <PanelContent className="flex flex-col">
         <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-          <div className="col-span-8">Branch</div>
-          <div className="col-span-4 text-right">Active Time</div>
+          <div className="col-span-8">{t('Branch')}</div>
+          <div className="col-span-4 text-right">{t('Active Time')}</div>
         </div>
 
         {isLoading && (
           <div className="py-8 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         )}
 
         {!isLoading && branches.length === 0 && (
           <div className="py-8 text-center">
-            <span className="text-sm text-secondary">No branches</span>
+            <span className="text-sm text-secondary">{t('No branches')}</span>
           </div>
         )}
 

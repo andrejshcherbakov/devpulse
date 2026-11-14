@@ -15,9 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
+import { useLanguage } from '@/shared/i18/language-context';
 
 export function UserMenu(): JSX.Element {
   const { user, logout } = useRequireAuth();
+  const { t } = useLanguage();
 
   const getInitials = (name: string) => {
     const target = name.trim();
@@ -36,7 +38,7 @@ export function UserMenu(): JSX.Element {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Your profile"
+          aria-label={t('Your profile')}
           className="rounded-full hover:bg-gray-alpha-100"
         >
           <Avatar>
@@ -57,7 +59,7 @@ export function UserMenu(): JSX.Element {
           <DropdownMenuItem asChild>
             <Link href="/settings">
               <Settings className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} aria-hidden="true" />
-              <span>Settings</span>
+              <span>{t('Settings')}</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -68,7 +70,7 @@ export function UserMenu(): JSX.Element {
           <DropdownMenuItem asChild>
             <a href="/docs" target="_blank" rel="noreferrer">
               <BookOpen className="mr-2 h-4 w-4 text-subtle" strokeWidth={1.5} aria-hidden="true" />
-              <span>Docs and resources</span>
+              <span>{t('Docs and resources')}</span>
             </a>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -80,7 +82,7 @@ export function UserMenu(): JSX.Element {
           className="text-secondary hover:bg-red-coral/10 hover:text-red-coral focus:bg-red-coral/10 focus:text-red-coral"
         >
           <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-          <span>Sign out</span>
+          <span>{t('Sign out')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
