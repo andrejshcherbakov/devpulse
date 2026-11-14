@@ -11,6 +11,9 @@ import {
   MAX_CONTEXT_COMMITS_PER_BRANCH,
   MAX_FILE_PATH_LENGTH,
   MAX_NAME_LENGTH,
+  MAX_SYMBOL_FILES_PER_BRANCH,
+  MAX_SYMBOLS_PER_FILE,
+  MAX_UNCOMMITTED_FILES_PER_BRANCH,
 } from '../constants/worklog.constants';
 import type { BranchWorkFacts } from '../interfaces/day-facts.interface';
 import { sanitizeText } from '../prompt/sanitize';
@@ -29,6 +32,8 @@ interface BranchWorkAccumulator {
   seconds: number;
   files: Map<string, number>;
   changedFiles: Set<string>;
+  uncommittedFiles: BranchWorkFacts['uncommittedFiles'];
+  touchedSymbols: Map<string, Set<string>>;
   commitHashes: Set<string>;
   commits: Map<string, BranchWorkFacts['commits'][number]>;
   commands: Array<TerminalCommand>;
@@ -76,6 +81,8 @@ export class BranchWorkFactsBuilder {
       seconds: 0,
       files: new Map<string, number>(),
       changedFiles: new Set<string>(),
+      uncommittedFiles: null,
+      touchedSymbols: new Map<string, Set<string>>(),
       commitHashes: new Set<string>(),
       commits: new Map<string, BranchWorkFacts['commits'][number]>(),
       commands: [],
@@ -83,6 +90,29 @@ export class BranchWorkFactsBuilder {
 
     entry.seconds += session.activeSeconds;
     entry.commands.push(...session.terminalCommands);
+
+    if (session.workingTreeChanges !== null) {
+      entry.uncommittedFiles = session.workingTreeChanges
+        .map((change) => ({
+          path: sanitizeText(change.path, MAX_FILE_PATH_LENGTH),
+          status: change.status,
+        }))
+        .filter((change) => change.path !== '')
+        .slice(0, MAX_UNCOMMITTED_FILES_PER_BRANCH);
+    }
+
+    for (const [filePath, symbols] of Object.entries(session.touchedSymbols)) {
+      const safePath = sanitizeText(filePath, MAX_FILE_PATH_LENGTH);
+      if (safePath === '') continue;
+
+      const targetSymbols = entry.touchedSymbols.get(safePath) ?? new Set<string>();
+      for (const symbol of symbols) {
+        const safeSymbol = sanitizeText(symbol, MAX_NAME_LENGTH);
+        if (safeSymbol !== '') targetSymbols.add(safeSymbol);
+        if (targetSymbols.size >= MAX_SYMBOLS_PER_FILE) break;
+      }
+      entry.touchedSymbols.set(safePath, targetSymbols);
+    }
 
     for (const [filePath, seconds] of Object.entries(session.fileSeconds)) {
       const safePath = sanitizeText(filePath, MAX_FILE_PATH_LENGTH);
@@ -178,6 +208,10 @@ export class BranchWorkFactsBuilder {
         .slice(0, MAX_ACTIVE_FILES_PER_BRANCH)
         .map(([path, seconds]) => ({ path, minutes: Math.max(1, Math.round(seconds / 60)) })),
       changedFiles: [...entry.changedFiles].slice(0, MAX_CHANGED_FILES_PER_BRANCH),
+      uncommittedFiles: entry.uncommittedFiles,
+      touchedSymbols: [...entry.touchedSymbols.entries()]
+        .slice(0, MAX_SYMBOL_FILES_PER_BRANCH)
+        .map(([path, symbols]) => ({ path, symbols: [...symbols] })),
       commitsObserved: entry.commitHashes.size,
       commits: [...entry.commits.values()].slice(-MAX_COMMITS_PER_BRANCH),
       contextCommits: [...(context?.commits.values() ?? [])]

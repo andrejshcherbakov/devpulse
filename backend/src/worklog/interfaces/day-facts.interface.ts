@@ -27,6 +27,11 @@ export interface BranchWorkFacts {
   activeMinutes: number;
   activeFiles: Array<{ path: string; minutes: number }>;
   changedFiles: Array<string>;
+  uncommittedFiles: Array<{
+    path: string;
+    status: 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked' | 'conflicted';
+  }> | null;
+  touchedSymbols: Array<{ path: string; symbols: Array<string> }>;
   commitsObserved: number;
   commits: Array<{ message: string; insertions: number; deletions: number }>;
   contextCommits: Array<BranchContextCommitFacts>;

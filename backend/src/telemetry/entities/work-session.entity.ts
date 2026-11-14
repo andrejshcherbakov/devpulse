@@ -1,5 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, ValueTransformer } from 'typeorm';
 
+import { type WorkingTreeChange } from '@devpulse/lib';
 import { type TypeId } from '@devpulse/lib/ids';
 
 import { AppBaseEntity } from '../../common/entities/app-base.entity';
@@ -112,6 +113,12 @@ export class WorkSession extends AppBaseEntity<'workSessions'> {
     filesList: Array<string>;
     timestamp: string;
   }>;
+
+  @Column({ name: 'working_tree_changes', type: 'jsonb', nullable: true })
+  public workingTreeChanges!: Array<WorkingTreeChange> | null;
+
+  @Column({ name: 'touched_symbols', type: 'jsonb', default: () => "'{}'::jsonb" })
+  public touchedSymbols!: Record<string, Array<string>>;
 
   @ManyToOne(() => User, (user) => user.workSessions, {
     nullable: false,

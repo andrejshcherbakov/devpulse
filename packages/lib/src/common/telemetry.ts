@@ -1,3 +1,19 @@
+export const WORKING_TREE_STATUSES = [
+  'modified',
+  'added',
+  'deleted',
+  'renamed',
+  'untracked',
+  'conflicted',
+] as const;
+
+export type WorkingTreeStatus = (typeof WORKING_TREE_STATUSES)[number];
+
+export interface WorkingTreeChange {
+  path: string;
+  status: WorkingTreeStatus;
+}
+
 export interface TelemetryEventDto {
   type:
     | 'heartbeat'
@@ -9,16 +25,16 @@ export interface TelemetryEventDto {
     | 'terminal_command'
     | 'task_run'
     | 'git_commit'
-    | 'ai_interaction';
+    | 'ai_interaction'
+    | 'working_tree'
+    | 'symbol_touch';
 
   gitBranch: string | null;
   gitRemoteUrl?: string;
-  /** Workspace-relative path. Null means that no trackable editor is active. */
   filePath?: string | null;
   language?: string;
   durationMs?: number | null;
   clientTimestamp?: string;
-  /** Actual activity-state boundary; may precede delivery after an idle grace period. */
   activityChangedAt?: string;
   machineId?: string;
   sessionId?: string;
@@ -39,4 +55,7 @@ export interface TelemetryEventDto {
 
   aiTool?: string;
   aiEstimated?: boolean;
+
+  workingTreeChanges?: Array<WorkingTreeChange>;
+  symbols?: Array<string>;
 }

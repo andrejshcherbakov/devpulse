@@ -10,14 +10,17 @@ import {
   shouldDetectAiAssistance,
   shouldSendCommitMessages,
   shouldSendFilePaths,
+  shouldSendSymbolNames,
   shouldSendTerminalCommands,
 } from '../configuration.js';
 import type { GitContext, GitContextProvider } from '../git-context.js';
 import { type AiMonitor } from '../signals/ai-monitor.js';
 import { sanitizeCommand } from '../signals/command-sanitizer.js';
 import { type GitCommitWatcher } from '../signals/git-commit-watcher.js';
+import type { SymbolMonitor } from '../signals/symbol-monitor.js';
 import type { TasksMonitor } from '../signals/tasks-monitor.js';
 import type { TerminalMonitor } from '../signals/terminal-monitor.js';
+import type { WorkingTreeMonitor } from '../signals/working-tree-monitor.js';
 import { type StatusBarState } from '../status-bar/status-bar-state.js';
 
 import { ContextTracker } from './bridge/context-tracker.js';
@@ -75,6 +78,8 @@ export class TelemetryBridge implements vscode.Disposable {
     private readonly terminalMonitor: TerminalMonitor,
     private readonly tasksMonitor: TasksMonitor,
     private readonly gitCommitWatcher: GitCommitWatcher,
+    private readonly workingTreeMonitor: WorkingTreeMonitor,
+    private readonly symbolMonitor: SymbolMonitor,
     private readonly statusBarState: StatusBarState,
     private readonly log?: vscode.LogOutputChannel,
   ) {
@@ -128,6 +133,7 @@ export class TelemetryBridge implements vscode.Disposable {
     if (this.activityMonitor.currentState === 'active') {
       this.enqueue(this.createHeartbeat());
     }
+    this.workingTreeMonitor.requestSnapshot(true);
   }
 
   public async start(): Promise<void> {
@@ -160,6 +166,7 @@ export class TelemetryBridge implements vscode.Disposable {
     }
 
     this.registerListeners();
+    this.workingTreeMonitor.setWorkspaceFolder(initialContext.workspaceFolderPath);
     this.flushScheduler.start();
   }
 
@@ -226,6 +233,7 @@ export class TelemetryBridge implements vscode.Disposable {
 
       vscode.workspace.onDidSaveTextDocument((doc) => {
         if (!this.shouldTrack(doc.uri)) return;
+        this.workingTreeMonitor.requestSnapshot();
         const filePath = shouldSendFilePaths() ? this.toRelativePath(doc.uri) : undefined;
         this.log?.info(`file_save: ${filePath ?? '[path disabled]'}`);
         this.enqueue(
@@ -234,6 +242,18 @@ export class TelemetryBridge implements vscode.Disposable {
             language: doc.languageId,
           }),
         );
+      }),
+
+      vscode.workspace.onDidCreateFiles(() => {
+        this.workingTreeMonitor.requestSnapshot();
+      }),
+
+      vscode.workspace.onDidDeleteFiles(() => {
+        this.workingTreeMonitor.requestSnapshot();
+      }),
+
+      vscode.workspace.onDidRenameFiles(() => {
+        this.workingTreeMonitor.requestSnapshot();
       }),
 
       vscode.window.onDidChangeActiveTextEditor((editor) => {
@@ -255,9 +275,31 @@ export class TelemetryBridge implements vscode.Disposable {
         if (e.affectsConfiguration('devpulse.apiUrl')) {
           void this.flush();
         }
+        if (e.affectsConfiguration('devpulse.sendFilePaths')) {
+          this.workingTreeMonitor.requestSnapshot(true);
+        }
+      }),
+
+      this.workingTreeMonitor.onDidChangeWorkingTree((changes) => {
+        if (!shouldSendFilePaths()) return;
+        this.enqueue(this.create('working_tree', { workingTreeChanges: changes }));
+      }),
+
+      this.symbolMonitor.onDidTouchSymbols((event) => {
+        if (!shouldSendFilePaths() || !shouldSendSymbolNames() || !this.shouldTrack(event.uri)) {
+          return;
+        }
+
+        this.enqueue(
+          this.create('symbol_touch', {
+            filePath: this.toRelativePath(event.uri),
+            symbols: event.symbols,
+          }),
+        );
       }),
 
       this.terminalMonitor.onDidRunCommand((event) => {
+        this.workingTreeMonitor.requestSnapshot();
         if (!shouldSendTerminalCommands()) return;
         const sanitized = sanitizeCommand(event.command);
         if (!sanitized) return;
@@ -275,6 +317,7 @@ export class TelemetryBridge implements vscode.Disposable {
       }),
 
       this.tasksMonitor.onDidRunTask((event) => {
+        this.workingTreeMonitor.requestSnapshot();
         this.log?.info(
           `task: ${event.name} (exit=${String(event.exitCode ?? 'n/a')}, ${String(event.durationMs)}ms)`,
         );
@@ -302,6 +345,7 @@ export class TelemetryBridge implements vscode.Disposable {
             filesList: shouldSendFilePaths() ? event.filesList : undefined,
           }),
         );
+        this.workingTreeMonitor.requestSnapshot();
       }),
     );
   }
@@ -400,6 +444,10 @@ export class TelemetryBridge implements vscode.Disposable {
     this.lastActivityState = next;
     this.lastActivityChangeAtMs = changedAt;
     this.statusBarState.setActivity(next);
+
+    if (next === 'active') {
+      this.workingTreeMonitor.requestSnapshot(true);
+    }
   }
 
   private onGitContextTransition(nextContext: GitContext): void {
@@ -407,6 +455,11 @@ export class TelemetryBridge implements vscode.Disposable {
     const previousRemoteUrl = this.contextTracker.remoteUrl;
 
     const result = this.contextTracker.update(nextContext);
+
+    if (result !== 'noop') {
+      void this.gitCommitWatcher.setWorkspaceFolder(nextContext.workspaceFolderPath);
+      this.workingTreeMonitor.setWorkspaceFolder(nextContext.workspaceFolderPath);
+    }
 
     if (result === 'changed' || result === 'lost') {
       this.log?.info(
@@ -417,8 +470,6 @@ export class TelemetryBridge implements vscode.Disposable {
     if (result === 'lost' || result === 'noop') {
       return;
     }
-
-    void this.gitCommitWatcher.setWorkspaceFolder(nextContext.workspaceFolderPath);
 
     if (result === 'restored') {
       this.flushPendingBuffer();

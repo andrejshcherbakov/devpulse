@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import type { TelemetryEventDto } from '@devpulse/lib';
+import type { TelemetryEventDto, WorkingTreeChange } from '@devpulse/lib';
 
 export type TelemetryEventType =
   | 'heartbeat'
@@ -12,7 +12,9 @@ export type TelemetryEventType =
   | 'terminal_command'
   | 'task_run'
   | 'git_commit'
-  | 'ai_interaction';
+  | 'ai_interaction'
+  | 'working_tree'
+  | 'symbol_touch';
 
 export interface EventPartial {
   durationMs?: number | null;
@@ -35,6 +37,8 @@ export interface EventPartial {
   filesList?: Array<string>;
   aiTool?: string;
   aiEstimated?: boolean;
+  workingTreeChanges?: Array<WorkingTreeChange>;
+  symbols?: Array<string>;
 }
 
 export interface EventFactoryContext {
@@ -80,5 +84,7 @@ export function createEvent(
     filesList: partial.filesList,
     aiTool: partial.aiTool,
     aiEstimated: partial.aiEstimated,
+    workingTreeChanges: partial.workingTreeChanges,
+    symbols: partial.symbols,
   };
 }

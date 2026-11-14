@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** November 7, 2026
+**Last updated:** November 14, 2026
 
 DevPulse is a self-hosted VS Code activity tracker. The extension sends
 workflow metadata to the backend selected by the user. The backend operator is
@@ -27,6 +27,8 @@ URL, VS Code-generated machine ID, and VS Code session ID.
 | `task_run`                | VS Code task name, source, exit code, duration                    |
 | `git_commit`              | Hash, optional message, diff totals, optional changed-file paths  |
 | `ai_interaction`          | Detected tool name and a flag that the interaction is an estimate |
+| `working_tree`            | Relative paths and Git status of uncommitted files when enabled   |
+| `symbol_touch`            | Relative path and touched class/function names when enabled       |
 
 The backend can derive sessions, active and idle time, language usage, file
 time, command outcomes, focus estimates, and AI-assisted activity estimates
@@ -46,6 +48,16 @@ Branches, remote URLs, commit messages, and file names can contain company,
 customer, ticket, or personal information. HTTP(S) credentials are removed
 from remote URLs and URL query/fragment data is not needed for analytics.
 Commit-message and file-path transmission can be disabled independently.
+Working-tree events contain only relative paths and status values such as
+`modified`, `untracked`, or `deleted`; no diff is collected.
+
+### Symbol metadata
+
+Symbol-name sharing is disabled by default. When enabled, DevPulse uses the
+VS Code document-symbol provider after a file is saved and sends the names of
+matching classes, interfaces, methods, or functions. Names can reveal project
+or business terminology. Source lines, signatures, and function bodies are
+not included.
 
 ### Terminal metadata
 
@@ -69,6 +81,8 @@ tools can produce false positives.
 ## Data not sent by the extension
 
 - complete source-code contents;
+- Git diff contents;
+- function bodies or signatures;
 - text inserted into the editor;
 - individual keystrokes;
 - terminal output;
@@ -83,8 +97,9 @@ Normal telemetry ingestion does not contact an AI provider. When a user
 explicitly generates a worklog, the backend may send the configured AI
 provider a bounded set of daily facts: active time, focus estimate, project and
 branch names, language percentages, up to five relative hot-file paths,
-aggregated terminal outcomes, commit messages when enabled, and the
-AI-assisted percentage. Source-code and terminal-output contents are excluded.
+aggregated terminal outcomes, commit messages when enabled, the latest
+uncommitted-file status, optional touched symbol names, and the AI-assisted
+percentage. Source-code, Git-diff, and terminal-output contents are excluded.
 
 The backend operator chooses the AI provider and is responsible for explaining
 that provider's processing and retention terms.
@@ -104,13 +119,14 @@ that provider's processing and retention terms.
 
 ## User controls
 
-| Setting                         | Effect                                              |
-| ------------------------------- | --------------------------------------------------- |
-| `devpulse.enabled`              | Master tracking switch                              |
-| `devpulse.sendFilePaths`        | Controls relative file paths and changed-file lists |
-| `devpulse.sendTerminalCommands` | Controls terminal-command events                    |
-| `devpulse.sendCommitMessages`   | Controls commit-message text                        |
-| `devpulse.detectAiAssistance`   | Controls local AI-insertion detection and AI events |
+| Setting                         | Effect                                                     |
+| ------------------------------- | ---------------------------------------------------------- |
+| `devpulse.enabled`              | Master tracking switch                                     |
+| `devpulse.sendFilePaths`        | Controls relative paths, changed files, and Git status     |
+| `devpulse.sendTerminalCommands` | Controls terminal-command events                           |
+| `devpulse.sendCommitMessages`   | Controls commit-message text                               |
+| `devpulse.sendSymbolNames`      | Controls touched class/function names; disabled by default |
+| `devpulse.detectAiAssistance`   | Controls local AI-insertion detection and AI events        |
 
 Additional controls:
 

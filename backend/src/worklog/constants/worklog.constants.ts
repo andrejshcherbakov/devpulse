@@ -19,7 +19,7 @@ export const MAX_ACTIVE_DAYS = { free: 7, paid: 31 } as const;
 export type LlmTier = keyof typeof MAX_ACTIVE_DAYS;
 
 /** Bump when the prompt or the facts shape changes, so cached texts are regenerated. */
-export const PROMPT_VERSION = 4;
+export const PROMPT_VERSION = 5;
 
 /** Caps on what is sent to the model. They bound token usage and the room for prompt injection. */
 export const MAX_NAME_LENGTH = 80;
@@ -33,6 +33,9 @@ export const MAX_ACTIVE_FILES_PER_BRANCH = 5;
 export const MAX_CHANGED_FILES_PER_BRANCH = 10;
 export const MAX_COMMITS_PER_BRANCH = 5;
 export const MAX_CONTEXT_COMMITS_PER_BRANCH = 8;
+export const MAX_UNCOMMITTED_FILES_PER_BRANCH = 20;
+export const MAX_SYMBOL_FILES_PER_BRANCH = 8;
+export const MAX_SYMBOLS_PER_FILE = 8;
 
 /** Past branch history used only to understand the task behind the reported activity. */
 export const BRANCH_CONTEXT_LOOKBACK_DAYS = 30;

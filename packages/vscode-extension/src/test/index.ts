@@ -1,4 +1,6 @@
 import '../signals/command-sanitizer.spec.js';
+import '../signals/symbol-selection.spec.js';
+import '../signals/working-tree-status.spec.js';
 import '../status-bar/health-status.spec.js';
 import '../telemetry/bridge/pending-buffer.spec.js';
 import '../telemetry/buffer-store.spec.js';
