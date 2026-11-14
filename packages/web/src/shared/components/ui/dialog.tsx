@@ -5,12 +5,27 @@ import { X } from 'lucide-react';
 import * as React from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
 const DialogPortal = DialogPrimitive.Portal;
 const DialogClose = DialogPrimitive.Close;
+
+function DialogCloseButton(): JSX.Element {
+  const { t } = useLanguage();
+
+  return (
+    <DialogPrimitive.Close
+      className="absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-lg text-subtle transition-colors outline-none hover:bg-gray-alpha-100 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/15 disabled:pointer-events-none"
+      aria-label={t('Close')}
+    >
+      <X className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+      <span className="sr-only">{t('Close')}</span>
+    </DialogPrimitive.Close>
+  );
+}
 
 const DialogOverlay = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Overlay>,
@@ -48,13 +63,7 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close
-        className="absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-lg text-subtle transition-colors outline-none hover:bg-gray-alpha-100 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/15 disabled:pointer-events-none"
-        aria-label="Close"
-      >
-        <X className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      <DialogCloseButton />
     </DialogPrimitive.Content>
   </DialogPortal>
 ));

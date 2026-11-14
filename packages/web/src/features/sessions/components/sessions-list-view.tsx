@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateTimeLabel } from '@/shared/lib/date';
 
@@ -34,6 +35,7 @@ import { SessionsSummaryCards } from './sessions-summary-cards';
 export function SessionsListView(): JSX.Element {
   const { data: sessions = [], isLoading, error } = useSessions();
   const { user } = useRequireAuth();
+  const { locale, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
 
@@ -57,12 +59,12 @@ export function SessionsListView(): JSX.Element {
     <Page>
       <PageHeader>
         <div>
-          <PageEyebrow>Activity timeline</PageEyebrow>
+          <PageEyebrow>{t('Activity timeline')}</PageEyebrow>
           <PageHeaderHeading>
-            <PageTitle>Sessions</PageTitle>
+            <PageTitle>{t('Sessions')}</PageTitle>
           </PageHeaderHeading>
           <PageDescription>
-            Detailed log of your tracked development activity and focus metrics
+            {t('Detailed log of your tracked development activity and focus metrics')}
           </PageDescription>
         </div>
       </PageHeader>
@@ -90,7 +92,7 @@ export function SessionsListView(): JSX.Element {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by project or branch..."
+                placeholder={t('Search by project or branch...')}
                 className="pl-8"
               />
             </div>
@@ -98,10 +100,10 @@ export function SessionsListView(): JSX.Element {
             <div className="hidden w-44 shrink-0 sm:block">
               <Select value={projectFilter} onValueChange={setProjectFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Projects" />
+                  <SelectValue placeholder={t('All projects')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
+                  <SelectItem value="all">{t('All projects')}</SelectItem>
                   {uniqueProjects.map((p) => (
                     <SelectItem key={p} value={p}>
                       {p}
@@ -113,9 +115,13 @@ export function SessionsListView(): JSX.Element {
           </div>
 
           <div className="flex items-center gap-2 self-end text-xs text-subtle sm:self-auto">
-            <span>Showing:</span>
+            <span>{t('Showing:')}</span>
             <span className="font-mono text-xs font-medium text-foreground tabular-nums">
-              {isLoading ? '—' : `${filteredSessions.length} of ${sessions.length}`}
+              {isLoading
+                ? '—'
+                : locale === 'pl'
+                  ? `${filteredSessions.length} z ${sessions.length}`
+                  : `${filteredSessions.length} of ${sessions.length}`}
             </span>
           </div>
         </PanelHeader>
@@ -124,37 +130,37 @@ export function SessionsListView(): JSX.Element {
           data-tour="sessions-columns"
           className="grid grid-cols-12 gap-4 border-b border-border pb-3 text-xs font-medium tracking-wider text-subtle uppercase"
         >
-          <div className="col-span-4 sm:col-span-3">Start Time</div>
-          <div className="col-span-4 sm:col-span-3">Project</div>
-          <div className="hidden sm:col-span-3 sm:block">Branch</div>
-          <div className="col-span-2 sm:col-span-2">Duration</div>
-          <div className="col-span-2 text-right sm:col-span-1">Focus</div>
+          <div className="col-span-4 sm:col-span-3">{t('Start Time')}</div>
+          <div className="col-span-4 sm:col-span-3">{t('Project')}</div>
+          <div className="hidden sm:col-span-3 sm:block">{t('Branch')}</div>
+          <div className="col-span-2 sm:col-span-2">{t('Duration')}</div>
+          <div className="col-span-2 text-right sm:col-span-1">{t('Focus')}</div>
         </div>
 
         {isLoading && (
           <div className="py-16 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading session history…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading session history…')}</span>
           </div>
         )}
 
         {error && (
           <div className="py-8 text-center text-sm text-red-coral">
-            Failed to load sessions: {error instanceof Error ? error.message : 'Unknown error'}
+            {t('Failed to load sessions')}: {error instanceof Error ? error.message : t('Unknown error')}
           </div>
         )}
 
         {!isLoading && !error && sessions.length === 0 && (
           <div className="py-12 text-center">
-            <p className="text-sm text-secondary">No sessions recorded yet.</p>
+            <p className="text-sm text-secondary">{t('No sessions recorded yet.')}</p>
             <p className="mt-1 text-xs text-subtle">
-              Make sure your VS Code extension is running to track your activity.
+              {t('Make sure your VS Code extension is running to track your activity.')}
             </p>
           </div>
         )}
 
         {!isLoading && !error && sessions.length > 0 && filteredSessions.length === 0 && (
           <div className="py-12 text-center">
-            <p className="text-sm text-secondary">No sessions match your search filters.</p>
+            <p className="text-sm text-secondary">{t('No sessions match your search filters.')}</p>
             {(searchQuery || projectFilter !== 'all') && (
               <Button
                 variant="link"
@@ -165,7 +171,7 @@ export function SessionsListView(): JSX.Element {
                 }}
                 className="mt-2"
               >
-                Reset filters
+                {t('Reset filters')}
               </Button>
             )}
           </div>
@@ -192,7 +198,7 @@ export function SessionsListView(): JSX.Element {
                     aria-hidden="true"
                   />
                   <span className="font-mono text-xs text-secondary tabular-nums">
-                    {formatDateTimeLabel(session.startedAt, user.timezone)}
+                    {formatDateTimeLabel(session.startedAt, user.timezone, locale)}
                   </span>
                 </div>
 

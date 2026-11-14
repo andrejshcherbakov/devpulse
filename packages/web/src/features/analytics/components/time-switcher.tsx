@@ -4,6 +4,7 @@ import { type JSX } from 'react/jsx-runtime';
 
 import { DateRangePicker } from '@/shared/components/ui/date-range-picker';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { useLanguage } from '@/shared/i18/language-context';
 
 const periods = [
   { id: 'today', label: 'Today' },
@@ -24,6 +25,7 @@ export function TimeSwitcher({
   customRange,
   onCustomRangeChange,
 }: TimeSwitcherProps): JSX.Element {
+  const { t } = useLanguage();
   const handleRangeChange = (range: { startDate: string; endDate: string }) => {
     onCustomRangeChange?.(range);
     if (value !== 'custom') {
@@ -37,7 +39,7 @@ export function TimeSwitcher({
         <TabsList>
           {periods.map((p) => (
             <TabsTrigger key={p.id} value={p.id}>
-              {p.label}
+              {t(p.label)}
             </TabsTrigger>
           ))}
         </TabsList>

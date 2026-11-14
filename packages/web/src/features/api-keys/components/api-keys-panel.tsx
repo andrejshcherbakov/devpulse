@@ -13,6 +13,7 @@ import {
   PanelTitle,
 } from '@/shared/components/layout/panel';
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { useApiKeys, useRevokeApiKey } from '../hooks';
 import { ApiKeysTable } from './api-keys-table';
@@ -23,6 +24,7 @@ import { RevokeKeyDialog } from './revoke-key-dialog';
 export function ApiKeysPanel(): JSX.Element {
   const { data: keys = [], isLoading, isError } = useApiKeys();
   const revokeKey = useRevokeApiKey();
+  const { t } = useLanguage();
 
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
@@ -35,19 +37,19 @@ export function ApiKeysPanel(): JSX.Element {
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>API Keys</PanelTitle>
-          <PanelDescription>Manage API keys for VS Code and external integrations</PanelDescription>
+          <PanelTitle>{t('API Keys')}</PanelTitle>
+          <PanelDescription>{t('Manage API keys for VS Code and external integrations')}</PanelDescription>
         </div>
         <div className="flex items-center gap-2">
           <Button asChild size="sm" variant="outline">
             <Link href="/docs">
               <BookOpen className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
-              API docs
+              {t('API docs')}
             </Link>
           </Button>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
-            Create Key
+            {t('Create Key')}
           </Button>
         </div>
       </PanelHeader>
@@ -55,13 +57,13 @@ export function ApiKeysPanel(): JSX.Element {
       <PanelContent>
         {isLoading && (
           <div className="flex h-32 items-center justify-center">
-            <span className="animate-pulse text-sm text-secondary">Loading keys…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading keys…')}</span>
           </div>
         )}
 
         {isError && (
           <div className="flex h-32 items-center justify-center">
-            <p className="text-sm text-red-coral">Failed to load API keys.</p>
+            <p className="text-sm text-red-coral">{t('Failed to load API keys.')}</p>
           </div>
         )}
 
@@ -71,11 +73,11 @@ export function ApiKeysPanel(): JSX.Element {
               <Key className="h-5 w-5 text-subtle" strokeWidth={1.5} />
             </div>
             <p className="max-w-md text-sm text-secondary">
-              Create an API key to track your metrics from VS Code or connect external integrations.
+              {t('Create an API key to track your metrics from VS Code or connect external integrations.')}
             </p>
             <Button className="mt-4" size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
-              Create Key
+              {t('Create Key')}
             </Button>
           </div>
         )}
@@ -90,15 +92,15 @@ export function ApiKeysPanel(): JSX.Element {
                   aria-hidden="true"
                 />
                 <div>
-                  <h3 className="text-base font-medium text-foreground">Extension Keys</h3>
+                  <h3 className="text-base font-medium text-foreground">{t('Extension Keys')}</h3>
                   <p className="mt-0.5 text-xs leading-relaxed text-subtle">
-                    Write-only keys for uploading telemetry from the VS Code extension.
+                    {t('Write-only keys for uploading telemetry from the VS Code extension.')}
                   </p>
                 </div>
               </div>
               <ApiKeysTable
                 list={extensionKeys}
-                emptyMessage="No extension keys found."
+                emptyMessage={t('No extension keys found.')}
                 onRevoke={setPendingRevokeId}
                 isRevoking={revokeKey.isPending}
               />
@@ -112,15 +114,15 @@ export function ApiKeysPanel(): JSX.Element {
                   aria-hidden="true"
                 />
                 <div>
-                  <h3 className="text-base font-medium text-foreground">Integration Keys</h3>
+                  <h3 className="text-base font-medium text-foreground">{t('Integration Keys')}</h3>
                   <p className="mt-0.5 text-xs leading-relaxed text-subtle">
-                    Read-only keys for external systems using the documented analytics API.
+                    {t('Read-only keys for external systems using the documented analytics API.')}
                   </p>
                 </div>
               </div>
               <ApiKeysTable
                 list={integrationKeys}
-                emptyMessage="No integration keys found."
+                emptyMessage={t('No integration keys found.')}
                 onRevoke={setPendingRevokeId}
                 isRevoking={revokeKey.isPending}
               />

@@ -12,6 +12,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { type DateRange, useCommandsBreakdown } from '../hooks';
@@ -59,6 +60,7 @@ export function TerminalActivityPanel({
   projectId?: string;
 }): JSX.Element {
   const { data, isLoading } = useCommandsBreakdown(range, projectId);
+  const { locale, t } = useLanguage();
   const [filter, setFilter] = useState<KindFilter>('all');
 
   const allCommands = data?.commands ?? [];
@@ -72,8 +74,8 @@ export function TerminalActivityPanel({
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>Terminal activity</PanelTitle>
-          <PanelDescription>Commands and tasks you ran</PanelDescription>
+          <PanelTitle>{t('Terminal activity')}</PanelTitle>
+          <PanelDescription>{t('Commands and tasks you ran')}</PanelDescription>
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
@@ -91,7 +93,7 @@ export function TerminalActivityPanel({
                     : 'text-subtle hover:bg-gray-alpha-100 hover:text-secondary',
                 )}
               >
-                {KIND_LABELS[k]}
+                {t(KIND_LABELS[k])}
               </button>
             ))}
         </div>
@@ -99,15 +101,15 @@ export function TerminalActivityPanel({
 
       <PanelContent className="flex flex-col">
         <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-          <div className="col-span-6">Command</div>
-          <div className="col-span-2 text-right">Runs</div>
-          <div className="col-span-2 text-right">Avg</div>
-          <div className="col-span-2 text-right">Success</div>
+          <div className="col-span-6">{t('Command')}</div>
+          <div className="col-span-2 text-right">{t('Runs')}</div>
+          <div className="col-span-2 text-right">{t('Avg')}</div>
+          <div className="col-span-2 text-right">{t('Success')}</div>
         </div>
 
         {isLoading && (
           <div className="py-8 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         )}
 
@@ -115,8 +117,10 @@ export function TerminalActivityPanel({
           <div className="py-8 text-center">
             <span className="text-sm text-secondary">
               {allCommands.length === 0
-                ? 'No terminal commands tracked yet'
-                : `No ${KIND_LABELS[filter]} commands`}
+                ? t('No terminal commands tracked yet')
+                : locale === 'pl'
+                  ? `Brak poleceń w kategorii ${t(KIND_LABELS[filter]).toLowerCase()}`
+                  : `No ${KIND_LABELS[filter]} commands`}
             </span>
           </div>
         )}
@@ -166,8 +170,9 @@ export function TerminalActivityPanel({
 
         {filteredCommands.length > DASHBOARD_COMMAND_LIMIT && (
           <p className="border-t border-border pt-3 text-xs text-subtle">
-            Showing the top {String(DASHBOARD_COMMAND_LIMIT)} of {String(filteredCommands.length)}{' '}
-            commands for this view.
+            {locale === 'pl'
+              ? `Pokazano ${String(DASHBOARD_COMMAND_LIMIT)} z ${String(filteredCommands.length)} najczęstszych poleceń.`
+              : `Showing the top ${String(DASHBOARD_COMMAND_LIMIT)} of ${String(filteredCommands.length)} commands for this view.`}
           </p>
         )}
       </PanelContent>

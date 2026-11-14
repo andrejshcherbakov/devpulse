@@ -14,6 +14,7 @@ import {
   PanelTitle,
 } from '@/shared/components/layout/panel';
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 import { formatChartAxisLabel, toDateInput } from '@/shared/lib/date';
 
 import { type DateRange, useAnalyticsTimeseries, useExportSessions } from '../hooks';
@@ -27,6 +28,7 @@ export function ActivityChartPanel({
   projectId?: string;
 }): JSX.Element {
   const { data: timeseries = [], isLoading } = useAnalyticsTimeseries(range, projectId);
+  const { locale, t } = useLanguage();
   const exportMutation = useExportSessions();
 
   const chartData = useMemo(() => {
@@ -42,45 +44,45 @@ export function ActivityChartPanel({
       const iso = toDateInput(cursor);
       const seconds = byDate.get(iso) ?? 0;
       filled.push({
-        date: formatChartAxisLabel(iso, rangeDays),
+        date: formatChartAxisLabel(iso, rangeDays, locale),
         hours: Math.round((seconds / 3600) * 10) / 10,
       });
       cursor.setDate(cursor.getDate() + 1);
     }
 
     return filled;
-  }, [timeseries, range.startDate, range.endDate]);
+  }, [timeseries, range.startDate, range.endDate, locale]);
 
   return (
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>Activity</PanelTitle>
-          <PanelDescription>Active coding time by day</PanelDescription>
+          <PanelTitle>{t('Activity')}</PanelTitle>
+          <PanelDescription>{t('Active coding time by day')}</PanelDescription>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => exportMutation.mutate(range)}
           disabled={exportMutation.isPending}
-          aria-label="Export activity data to CSV"
+          aria-label={t('Export activity data to CSV')}
         >
           <Download className="mr-2 h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-          {exportMutation.isPending ? 'Exporting…' : 'Export'}
+          {exportMutation.isPending ? t('Exporting…') : t('Export')}
         </Button>
       </PanelHeader>
 
       <PanelContent>
         {isLoading ? (
           <div className="flex h-55 items-center justify-center">
-            <span className="animate-pulse text-sm text-secondary">Loading activity…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading activity…')}</span>
           </div>
         ) : chartData.length === 0 ? (
           <div className="flex h-55 items-center justify-center rounded-xl border border-dashed border-border">
-            <span className="text-sm text-secondary">No activity recorded for this period</span>
+            <span className="text-sm text-secondary">{t('No activity recorded for this period')}</span>
           </div>
         ) : (
-          <div className="h-55 w-full" role="region" aria-label="Activity Chart">
+          <div className="h-55 w-full" role="region" aria-label={t('Activity chart')}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}

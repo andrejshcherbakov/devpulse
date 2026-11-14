@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import type { DayState } from '../hooks';
 
@@ -19,6 +20,7 @@ export function WorklogDayEntry({
   disabled,
   onRegenerate,
 }: WorklogDayEntryProps): JSX.Element {
+  const { t } = useLanguage();
   const { day, status, result, error } = state;
 
   return (
@@ -32,7 +34,7 @@ export function WorklogDayEntry({
         {status === 'done' && result && (
           <div className="flex items-center gap-2">
             <span className="max-w-40 truncate text-xs text-subtle" title={result.model}>
-              {result.cached ? 'Saved' : result.model}
+              {result.cached ? t('Saved') : result.model}
             </span>
             <Button
               variant="ghost"
@@ -47,7 +49,7 @@ export function WorklogDayEntry({
         )}
       </div>
 
-      {status === 'pending' && <p className="text-xs text-subtle">Waiting</p>}
+      {status === 'pending' && <p className="text-xs text-subtle">{t('Waiting')}</p>}
 
       {status === 'loading' && (
         <div className="flex flex-col gap-2" aria-busy="true">
@@ -69,7 +71,7 @@ export function WorklogDayEntry({
             strokeWidth={1.5}
             aria-hidden="true"
           />
-          <p className="text-xs text-red-coral/90">{error ?? 'Generation failed'}</p>
+          <p className="text-xs text-red-coral/90">{error ?? t('Generation failed')}</p>
         </div>
       )}
     </div>

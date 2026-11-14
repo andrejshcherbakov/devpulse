@@ -4,6 +4,7 @@ import { Check, Copy } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { type CodeType, highlightCode } from '@/shared/lib/code-highlight';
 
@@ -42,6 +43,7 @@ function getExampleUrl(url: string, parameters: CodeTabsProps['parameters']): st
 export function CodeTabs({ method, url, parameters, response }: CodeTabsProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<Exclude<CodeType, 'json'>>('curl');
   const [hasCopied, setHasCopied] = useState(false);
+  const { t } = useLanguage();
 
   const fullUrl = getExampleUrl(url, parameters);
 
@@ -95,18 +97,18 @@ export function CodeTabs({ method, url, parameters, response }: CodeTabsProps): 
           <button
             type="button"
             onClick={copyCode}
-            aria-label="Copy code"
+            aria-label={t('Copy code')}
             className="flex cursor-pointer items-center gap-1.5 text-xs text-subtle transition-colors hover:text-secondary"
           >
             {hasCopied ? (
               <>
                 <Check className="size-3.5 text-brand" strokeWidth={1.5} />
-                <span className="text-brand">Copied</span>
+                <span className="text-brand">{t('Copied')}</span>
               </>
             ) : (
               <>
                 <Copy className="size-3.5" strokeWidth={1.5} />
-                <span>Copy</span>
+                <span>{t('Copy')}</span>
               </>
             )}
           </button>
@@ -121,7 +123,7 @@ export function CodeTabs({ method, url, parameters, response }: CodeTabsProps): 
         <div className="overflow-hidden rounded-xl border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border bg-gray-alpha-50 px-4 py-2.5">
             <span className="text-xs font-medium tracking-wider text-subtle uppercase">
-              Response
+              {t('Response')}
             </span>
             <span className="rounded bg-brand/10 px-2 py-0.5 font-mono text-xs text-brand">
               200 OK

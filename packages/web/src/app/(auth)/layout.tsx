@@ -1,7 +1,14 @@
+'use client';
+
 import React from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
+import { LanguageSwitcher } from '@/shared/components/layout/language-switcher';
+import { useLanguage } from '@/shared/i18/language-context';
+
 export default function AuthLayout({ children }: { children: React.ReactNode }): JSX.Element {
+  const { t } = useLanguage();
+
   return (
     <div className="flex min-h-screen bg-background p-2 md:p-4">
       <section className="relative hidden w-1/2 overflow-hidden rounded-3xl border border-border bg-surface lg:block">
@@ -16,12 +23,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }):
           </div>
 
           <p className="text-xs text-subtle">
-            © {new Date().getFullYear()} DevPulse · Workflow analytics
+            © {new Date().getFullYear()} DevPulse · {t('Workflow analytics')}
           </p>
         </div>
       </section>
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 lg:px-12">
+        <div className="absolute top-5 right-5">
+          <LanguageSwitcher />
+        </div>
         <div className="w-full max-w-sm">{children}</div>
       </main>
     </div>
@@ -73,20 +83,21 @@ function SoftGlow() {
 }
 
 function ActivityShowcase() {
+  const { t } = useLanguage();
   const bars = [24, 38, 52, 44, 61, 78, 66, 82, 71, 58, 46, 68, 74, 88, 62, 40];
 
   return (
     <div className="rounded-2xl border border-border bg-background/40 p-5 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-subtle">Today</p>
+          <p className="text-xs font-medium text-subtle">{t('Today')}</p>
           <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-foreground tabular-nums">
             6h 12m
           </p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand">
           <span className="h-1.5 w-1.5 rounded-full bg-brand shadow-[0_0_8px_var(--color-brand-glow)]" />
-          Coding now
+          {t('Coding now')}
         </div>
       </div>
 

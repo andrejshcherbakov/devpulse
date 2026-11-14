@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { AuthContextProvider } from '@/features/auth/context';
+import { LanguageProvider } from '@/shared/i18/language-context';
 
 export function Providers({ children }: { children: React.ReactNode }): JSX.Element {
   const [queryClient] = useState(
@@ -20,8 +21,10 @@ export function Providers({ children }: { children: React.ReactNode }): JSX.Elem
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthContextProvider>{children}</AuthContextProvider>
-    </QueryClientProvider>
+    <LanguageProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthContextProvider>{children}</AuthContextProvider>
+      </QueryClientProvider>
+    </LanguageProvider>
   );
 }

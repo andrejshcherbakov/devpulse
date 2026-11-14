@@ -1,8 +1,10 @@
 import { env } from '@devpulse/env/client';
+import { cookies } from 'next/headers';
 import { type JSX } from 'react/jsx-runtime';
 
 import { DocsLayoutWrapper } from '@/features/docs/components/docs-layout-wrapper';
 import { EndpointCard } from '@/features/docs/components/endpoint-card';
+import { type Locale,POLISH_TRANSLATIONS } from '@/shared/i18/dashboard-copy';
 import { generateEndpointId } from '@/shared/lib/docs';
 
 export const dynamic = 'force-dynamic';
@@ -101,6 +103,11 @@ function getEndpointUrl(apiBaseUrl: string, path: string): string {
 const methods: Array<OpenAPIMethod> = ['get', 'post', 'put', 'patch', 'delete'];
 
 export default async function DocsPage(): Promise<JSX.Element> {
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get('devpulse.interfaceLocale')?.value;
+  const locale: Locale = cookieLocale === 'pl' ? 'pl' : 'en';
+  const t = (value: string): string =>
+    locale === 'pl' ? (POLISH_TRANSLATIONS[value] ?? value) : value;
   const spec = await getOpenAPISpec();
   const { info, paths } = spec;
 
@@ -143,31 +150,31 @@ export default async function DocsPage(): Promise<JSX.Element> {
         <div className="page-enter mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
           <div id="introduction" className="mb-16 scroll-mt-24">
             <div className="mb-4 inline-flex rounded-full border border-brand/25 bg-brand/10 px-3 py-1 font-mono text-[11px] tracking-wide text-brand uppercase">
-              Stable read-only contract
+              {t('Stable read-only contract')}
             </div>
             <h1 className="mb-4 text-2xl font-semibold tracking-tight text-foreground">
               {info?.title || 'DevPulse API'}
             </h1>
             <p className="max-w-3xl text-base leading-relaxed text-secondary">
-              {info?.description || 'DevPulse API documentation for integration endpoints.'}
+              {locale === 'pl'
+                ? t('DevPulse API documentation for integration endpoints.')
+                : info?.description || 'DevPulse API documentation for integration endpoints.'}
             </p>
             <div className="mt-4 flex items-center gap-2">
-              <span className="font-mono text-xs text-subtle">Version</span>
+              <span className="font-mono text-xs text-subtle">{t('Version')}</span>
               <span className="font-mono text-xs text-brand">{info?.version || '1.0'}</span>
             </div>
             <p className="mt-4 font-mono text-xs text-secondary">
-              Base URL: {env.NEXT_PUBLIC_API_URL}
+              {t('Base URL')}: {env.NEXT_PUBLIC_API_URL}
             </p>
             <p className="mt-5 max-w-3xl text-sm leading-relaxed text-secondary">
-              Use this API to bring DevPulse statistics into internal dashboards, billing systems,
-              reports, bots, or any other server-side integration. It never exposes source-code
-              contents and does not require a specific task tracker.
+              {t('Use this API to bring DevPulse statistics into internal dashboards, billing systems, reports, bots, or any other server-side integration. It never exposes source-code contents and does not require a specific task tracker.')}
             </p>
           </div>
 
           <div id="quick-start" className="mb-16 scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">
-              Quick start
+              {t('Quick start')}
             </h2>
             <ol className="grid gap-3 text-sm text-secondary sm:grid-cols-2">
               {[
@@ -185,9 +192,9 @@ export default async function DocsPage(): Promise<JSX.Element> {
                     <span className="flex size-6 items-center justify-center rounded-full bg-brand/10 font-mono text-xs text-brand">
                       {step}
                     </span>
-                    <span className="font-medium text-foreground">{title}</span>
+                    <span className="font-medium text-foreground">{t(title)}</span>
                   </div>
-                  <p className="leading-relaxed">{description}</p>
+                  <p className="leading-relaxed">{t(description)}</p>
                 </li>
               ))}
             </ol>
@@ -195,74 +202,74 @@ export default async function DocsPage(): Promise<JSX.Element> {
 
           <div id="api-surfaces" className="mb-16 scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">
-              API surfaces
+              {t('API surfaces')}
             </h2>
             <div className="overflow-x-auto rounded-xl border border-border bg-surface">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="border-b border-border bg-gray-alpha-50 text-xs text-subtle">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Surface</th>
-                    <th className="px-4 py-3 font-medium">Credential</th>
-                    <th className="px-4 py-3 font-medium">Purpose</th>
-                    <th className="px-4 py-3 font-medium">Public contract</th>
+                    <th className="px-4 py-3 font-medium">{t('Surface')}</th>
+                    <th className="px-4 py-3 font-medium">{t('Credential')}</th>
+                    <th className="px-4 py-3 font-medium">{t('Purpose')}</th>
+                    <th className="px-4 py-3 font-medium">{t('Public contract')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border text-secondary">
                   <tr>
                     <td className="px-4 py-3 text-foreground">Integration API</td>
                     <td className="px-4 py-3 font-mono text-xs">analytics:read</td>
-                    <td className="px-4 py-3">Read aggregated analytics</td>
-                    <td className="px-4 py-3 text-brand">Yes</td>
+                    <td className="px-4 py-3">{t('Read aggregated analytics')}</td>
+                    <td className="px-4 py-3 text-brand">{t('Yes')}</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-foreground">VS Code telemetry</td>
                     <td className="px-4 py-3 font-mono text-xs">telemetry:write</td>
-                    <td className="px-4 py-3">Upload extension events</td>
-                    <td className="px-4 py-3">No, extension only</td>
+                    <td className="px-4 py-3">{t('Upload extension events')}</td>
+                    <td className="px-4 py-3">{t('No, extension only')}</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-foreground">Dashboard API</td>
                     <td className="px-4 py-3 font-mono text-xs">JWT session</td>
-                    <td className="px-4 py-3">Power the DevPulse web app</td>
-                    <td className="px-4 py-3">No, internal</td>
+                    <td className="px-4 py-3">{t('Power the DevPulse web app')}</td>
+                    <td className="px-4 py-3">{t('No, internal')}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-secondary">
-              This page documents only the stable Integration API. Extension and dashboard endpoints
-              may change with the corresponding DevPulse client and are intentionally excluded.
+              {t('This page documents only the stable Integration API. Extension and dashboard endpoints may change with the corresponding DevPulse client and are intentionally excluded.')}
             </p>
           </div>
 
           <div id="authentication" className="mb-16 scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">
-              Authentication
+              {t('Authentication')}
             </h2>
             <div className="rounded-xl border border-border bg-surface p-6">
               <p className="mb-4 text-sm font-medium text-foreground">
-                All integration requests require an Integration API key in the{' '}
+                {t('All integration requests require an Integration API key in the')}{' '}
                 <code className="font-mono text-xs text-brand">X-API-Key</code> header.
               </p>
               <pre className="overflow-x-auto rounded-lg bg-gray-alpha-50 p-4 font-mono text-xs">
                 <code className="text-secondary">X-API-Key: dp_live_1234567890abcdef</code>
               </pre>
               <p className="mt-4 text-sm leading-relaxed text-secondary">
-                Store the key only on your server. Browser-based calls require the browser origin to
-                be explicitly allowed by CORS.
+                {t('Store the key only on your server. Browser-based calls require the browser origin to be explicitly allowed by CORS.')}
               </p>
               <div className="mt-4 rounded-lg border border-yellow-amber/20 bg-yellow-amber/5 p-3 text-sm leading-relaxed text-secondary">
-                An Extension key has only <code className="font-mono text-xs">telemetry:write</code>{' '}
-                and will receive <code className="font-mono text-xs">403</code> here. Create an{' '}
-                <strong className="font-medium text-foreground">Integration</strong> key in Settings
-                to obtain <code className="font-mono text-xs">analytics:read</code>.
+                {t('An Extension key has only')}{' '}
+                <code className="font-mono text-xs">telemetry:write</code> {t('and will receive')}{' '}
+                <code className="font-mono text-xs">403</code> {t('here. Create an')}{' '}
+                <strong className="font-medium text-foreground">Integration</strong>{' '}
+                {t('key in Settings to obtain')}{' '}
+                <code className="font-mono text-xs">analytics:read</code>.
               </div>
             </div>
           </div>
 
           <div id="data-semantics" className="mb-16 scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">
-              Data semantics
+              {t('Data semantics')}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
@@ -284,8 +291,8 @@ export default async function DocsPage(): Promise<JSX.Element> {
                 ],
               ].map(([title, description]) => (
                 <div key={title} className="rounded-xl border border-border bg-surface p-4">
-                  <h3 className="mb-1.5 text-sm font-medium text-foreground">{title}</h3>
-                  <p className="text-sm leading-relaxed text-secondary">{description}</p>
+                  <h3 className="mb-1.5 text-sm font-medium text-foreground">{t(title)}</h3>
+                  <p className="text-sm leading-relaxed text-secondary">{t(description)}</p>
                 </div>
               ))}
             </div>
@@ -293,15 +300,15 @@ export default async function DocsPage(): Promise<JSX.Element> {
               href={`${env.NEXT_PUBLIC_API_URL}/docs-json`}
               className="mt-4 inline-flex text-sm font-medium text-brand transition-colors hover:text-brand/80"
             >
-              Download the OpenAPI JSON →
+              {t('Download the OpenAPI JSON')} →
             </a>
           </div>
 
           <div id="responses" className="mb-16 scroll-mt-24">
-            <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">Responses</h2>
+            <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground">{t('Responses')}</h2>
             <div className="rounded-xl border border-border bg-surface p-6">
               <p className="mb-4 text-sm leading-relaxed text-secondary">
-                Every JSON response uses the same envelope. Endpoint payloads are always inside{' '}
+                {t('Every JSON response uses the same envelope. Endpoint payloads are always inside')}{' '}
                 <code className="font-mono text-xs text-brand">data</code>.
               </p>
               <pre className="overflow-x-auto rounded-lg bg-gray-alpha-50 p-4 font-mono text-xs text-secondary">
@@ -313,10 +320,10 @@ export default async function DocsPage(): Promise<JSX.Element> {
 }`}</code>
               </pre>
               <p className="mt-4 text-sm leading-relaxed text-secondary">
-                Errors use <code className="font-mono text-xs text-brand">success: false</code> and
-                include <code className="font-mono text-xs text-brand">error.code</code> and{' '}
-                <code className="font-mono text-xs text-brand">error.message</code>. Common
-                statuses: 400, 401, 403, and 429.
+                {t('Errors use')} <code className="font-mono text-xs text-brand">success: false</code>{' '}
+                {t('and include')} <code className="font-mono text-xs text-brand">error.code</code>{' '}
+                {t('and')} <code className="font-mono text-xs text-brand">error.message</code>.{' '}
+                {t('Common statuses')}: 400, 401, 403, {t('and')} 429.
               </p>
             </div>
           </div>

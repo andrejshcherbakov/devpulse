@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
+import { useLanguage } from '@/shared/i18/language-context';
 
 interface RevokeKeyDialogProps {
   keyId: string | null;
@@ -26,24 +27,25 @@ export function RevokeKeyDialog({
   onConfirm,
   isPending,
 }: RevokeKeyDialogProps): JSX.Element {
+  const { t } = useLanguage();
+
   return (
     <AlertDialog open={keyId !== null} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently revoke the API key. Any integrations using it will stop working
-            immediately.
+            {t('This will permanently revoke the API key. Any integrations using it will stop working immediately.')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>{t('Cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-red-coral text-white hover:bg-red-coral/90 active:bg-red-coral/80"
             onClick={() => keyId && onConfirm(keyId)}
             disabled={isPending}
           >
-            {isPending ? 'Revoking…' : 'Revoke'}
+            {isPending ? t('Revoking…') : t('Revoke')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

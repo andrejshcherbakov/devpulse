@@ -1,4 +1,6 @@
 import { type JSX } from 'react/jsx-runtime';
+
+import { useLanguage } from '@/shared/i18/language-context';
 interface ActivityChartTooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -13,6 +15,7 @@ export function ActivityChartTooltip({
   payload,
   label,
 }: ActivityChartTooltipProps): JSX.Element | null {
+  const { t } = useLanguage();
   if (!active || !payload?.length || payload[0].value === undefined) {
     return null;
   }
@@ -25,7 +28,7 @@ export function ActivityChartTooltip({
         <span className="font-mono text-sm font-semibold text-foreground tabular-nums">
           {payload[0].value}h
         </span>
-        <span className="text-xs text-subtle">active time</span>
+        <span className="text-xs text-subtle">{t('active time')}</span>
       </div>
     </div>
   );

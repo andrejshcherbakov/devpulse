@@ -1,6 +1,7 @@
 'use client';
 
 import { formatDuration } from '@devpulse/lib';
+import { enUS, pl } from 'date-fns/locale';
 import { formatInTimeZone } from 'date-fns-tz';
 import { ChevronRight, Clock, GitBranch, TerminalSquare } from 'lucide-react';
 import Link from 'next/link';
@@ -14,26 +15,33 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatTimeRange } from '@/shared/lib/date';
 import type { WorkSessionSummary } from '@/shared/types';
 
 import { RECENT_SESSIONS_LIMIT, useRecentSessions } from '../hooks';
 
-/** A focus score of a session shorter than this says nothing: 6 seconds of typing is "100%". */
 const MIN_SECONDS_FOR_FOCUS = 5 * 60;
 
 const SHORT_DAY_LABEL_FORMAT = 'EEE, MMM d';
 
-function formatSessionTime(session: WorkSessionSummary, timezone: string): string {
+function formatSessionTime(
+  session: WorkSessionSummary,
+  timezone: string,
+  locale: 'en' | 'pl',
+): string {
   const startedAt = new Date(session.startedAt);
   const range = formatTimeRange(
     session.startedAt,
     session.isLive ? null : session.endedAt,
     timezone,
+    locale,
   );
 
-  return `${formatInTimeZone(startedAt, timezone, SHORT_DAY_LABEL_FORMAT)} · ${range}`;
+  return `${formatInTimeZone(startedAt, timezone, SHORT_DAY_LABEL_FORMAT, {
+    locale: locale === 'pl' ? pl : enUS,
+  })} · ${range}`;
 }
 
 function focusColorClass(score: number): string {
@@ -44,6 +52,7 @@ function focusColorClass(score: number): string {
 
 export function RecentSessionsPanel({ projectId }: { projectId?: string }): JSX.Element {
   const { user } = useRequireAuth();
+  const { locale, t } = useLanguage();
   const {
     data: sessions = [],
     isLoading,
@@ -54,34 +63,34 @@ export function RecentSessionsPanel({ projectId }: { projectId?: string }): JSX.
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>Recent sessions</PanelTitle>
-          <PanelDescription>Your latest tracked activity</PanelDescription>
+          <PanelTitle>{t('Recent sessions')}</PanelTitle>
+          <PanelDescription>{t('Your latest tracked activity')}</PanelDescription>
         </div>
       </PanelHeader>
 
       <PanelContent className="flex flex-col">
         <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-          <div className="col-span-3">Time</div>
-          <div className="col-span-4">Branch</div>
-          <div className="col-span-3">Language</div>
-          <div className="col-span-2 text-right">Active / focus</div>
+          <div className="col-span-3">{t('Time')}</div>
+          <div className="col-span-4">{t('Branch')}</div>
+          <div className="col-span-3">{t('Language')}</div>
+          <div className="col-span-2 text-right">{t('Active / focus')}</div>
         </div>
 
         {isLoading && (
           <div className="py-8 text-center">
-            <span className="animate-pulse text-sm text-secondary">Loading…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         )}
 
         {isError && (
           <div className="py-8 text-center">
-            <span className="text-sm text-red-coral">Could not load sessions</span>
+            <span className="text-sm text-red-coral">{t('Could not load sessions')}</span>
           </div>
         )}
 
         {!isLoading && !isError && sessions.length === 0 && (
           <div className="py-8 text-center">
-            <span className="text-sm text-secondary">No sessions yet</span>
+            <span className="text-sm text-secondary">{t('No sessions yet')}</span>
           </div>
         )}
 
@@ -102,7 +111,7 @@ export function RecentSessionsPanel({ projectId }: { projectId?: string }): JSX.
                 strokeWidth={1.5}
                 aria-hidden="true"
               />
-              <span className="truncate">{formatSessionTime(session, user.timezone)}</span>
+              <span className="truncate">{formatSessionTime(session, user.timezone, locale)}</span>
             </div>
 
             <div className="col-span-4 flex min-w-0 items-center">
@@ -140,7 +149,9 @@ export function RecentSessionsPanel({ projectId }: { projectId?: string }): JSX.
                   session.durationSeconds === 0 ? 'text-subtle' : 'text-foreground',
                 )}
               >
-                {session.durationSeconds === 0 ? 'idle' : formatDuration(session.durationSeconds)}
+                {session.durationSeconds === 0
+                  ? t('idle')
+                  : formatDuration(session.durationSeconds)}
               </span>
               {session.durationSeconds >= MIN_SECONDS_FOR_FOCUS ? (
                 <span

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Button } from '@/shared/components/ui/button';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import type { useWorklogRun } from '../hooks';
@@ -34,6 +35,7 @@ export function WorklogDrawer({
   onCancel,
 }: WorklogDrawerProps): JSX.Element {
   const [copied, setCopied] = useState(false);
+  const { locale, t } = useLanguage();
 
   const isBusy = phase === 'planning' || phase === 'running';
   const doneCount = days.filter((item) => item.status === 'done').length;
@@ -74,16 +76,16 @@ export function WorklogDrawer({
           <header className="flex items-start justify-between gap-4 border-b border-border px-6 py-4">
             <div className="min-w-0">
               <DialogPrimitive.Title className="text-base font-semibold text-foreground">
-                AI Worklog
+                {t('AI Worklog')}
               </DialogPrimitive.Title>
               <DialogPrimitive.Description className="mt-0.5 truncate text-xs text-subtle">
-                {plan ? `${plan.startDate} → ${plan.endDate}` : 'Report'}
+                {plan ? `${plan.startDate} → ${plan.endDate}` : t('Report')}
                 {days.length > 0 && (
                   <>
                     {' · '}
                     <span className="font-medium text-foreground">{String(doneCount)}</span>
-                    {' of '}
-                    {String(days.length)} days ready
+                    {locale === 'pl' ? ' z ' : ' of '}
+                    {String(days.length)} {locale === 'pl' ? 'dni gotowych' : 'days ready'}
                   </>
                 )}
               </DialogPrimitive.Description>
@@ -92,7 +94,7 @@ export function WorklogDrawer({
             <div className="flex shrink-0 items-center gap-2">
               {phase === 'running' && (
                 <Button size="sm" variant="outline" onClick={onCancel}>
-                  Stop
+                  {t('Stop')}
                 </Button>
               )}
 
@@ -102,11 +104,11 @@ export function WorklogDrawer({
                 ) : (
                   <Copy className="mr-1.5 h-4 w-4" strokeWidth={1.5} />
                 )}
-                {copied ? 'Copied' : 'Copy all'}
+                {copied ? t('Copied') : t('Copy all')}
               </Button>
 
               <DialogPrimitive.Close asChild>
-                <Button size="icon" variant="ghost" aria-label="Close">
+                <Button size="icon" variant="ghost" aria-label={t('Close')}>
                   <X className="h-4 w-4" />
                 </Button>
               </DialogPrimitive.Close>

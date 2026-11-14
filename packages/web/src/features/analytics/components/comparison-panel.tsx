@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { type DateRange, useDashboardComparison } from '../hooks';
@@ -40,6 +41,7 @@ function DeltaIcon({ diff }: { diff: number }) {
 }
 
 export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX.Element {
+  const { t } = useLanguage();
   const { current, previous, isLoading } = useDashboardComparison(range, projectId);
 
   if (isLoading || !current || !previous) {
@@ -47,8 +49,8 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
       <Panel className="h-full">
         <PanelHeader>
           <div>
-            <PanelTitle>Comparison</PanelTitle>
-            <PanelDescription>vs previous period of the same length</PanelDescription>
+            <PanelTitle>{t('Comparison')}</PanelTitle>
+            <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
           </div>
         </PanelHeader>
         <PanelContent className="grid grid-cols-2 gap-2.5" aria-busy={isLoading}>
@@ -68,15 +70,15 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
       <Panel className="flex h-full flex-col">
         <PanelHeader>
           <div>
-            <PanelTitle>Comparison</PanelTitle>
-            <PanelDescription>vs previous period of the same length</PanelDescription>
+            <PanelTitle>{t('Comparison')}</PanelTitle>
+            <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
           </div>
         </PanelHeader>
         <PanelContent className="flex flex-1 items-center justify-center py-10 text-center">
           <div>
-            <p className="text-sm font-medium text-foreground">A baseline is taking shape</p>
+            <p className="text-sm font-medium text-foreground">{t('A baseline is taking shape')}</p>
             <p className="mt-1 max-w-60 text-xs leading-5 text-subtle">
-              Keep tracking activity and this space will compare your next complete period.
+              {t('Keep tracking activity and this space will compare your next complete period.')}
             </p>
           </div>
         </PanelContent>
@@ -115,8 +117,8 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>Comparison</PanelTitle>
-          <PanelDescription>vs previous period of the same length</PanelDescription>
+          <PanelTitle>{t('Comparison')}</PanelTitle>
+          <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
         </div>
       </PanelHeader>
       <PanelContent>
@@ -126,16 +128,16 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
               key={m.label}
               className="flex min-h-24 flex-col justify-between rounded-xl border border-border bg-white/[0.02] p-3.5"
             >
-              <span className="text-xs text-subtle">{m.label}</span>
+              <span className="text-xs text-subtle">{t(m.label)}</span>
               <span className="font-mono text-lg font-semibold tracking-tight text-foreground tabular-nums">
                 {m.current}
               </span>
               {m.label === 'Top language' ? (
-                m.diff !== 0 && <span className="text-xs text-subtle">changed</span>
+                m.diff !== 0 && <span className="text-xs text-subtle">{t('changed')}</span>
               ) : m.diff === 0 ? (
                 <span className="flex items-center gap-1 text-xs text-subtle">
                   <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
-                  no change
+                  {t('no change')}
                 </span>
               ) : (
                 <span

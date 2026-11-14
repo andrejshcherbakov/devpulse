@@ -19,28 +19,35 @@ import {
   FormMessage,
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
+import { useLanguage } from '@/shared/i18/language-context';
 import { getErrorMessage } from '@/shared/lib/error';
 
 import { useAuth } from '../context';
 import { buildLoginCryptoPayload, generateKeyPair } from '../crypto';
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(1, 'Password is required'),
-});
+interface LoginValues {
+  email: string;
+  password: string;
+}
 
 export function LoginForm(): JSX.Element {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof loginSchema>>({
+  const loginSchema = z.object({
+    email: z.string().email(t('Invalid email')),
+    password: z.string().min(1, t('Password is required')),
+  });
+
+  const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (values: LoginValues) => {
     setIsLoading(true);
     setError(null);
 
@@ -70,9 +77,9 @@ export function LoginForm(): JSX.Element {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-8">
       <div className="text-center lg:text-left">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground">Welcome back</h2>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">{t('Welcome back')}</h2>
         <p className="mt-1 text-sm text-secondary">
-          Enter your credentials to access your account.
+          {t('Enter your credentials to access your account.')}
         </p>
       </div>
 
@@ -89,7 +96,7 @@ export function LoginForm(): JSX.Element {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t('Email')}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="john@example.com"
@@ -110,13 +117,13 @@ export function LoginForm(): JSX.Element {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('Password')}</FormLabel>
                   <Button
                     variant="link"
                     asChild
                     className="h-auto p-0 text-xs font-medium no-underline"
                   >
-                    <Link href="/forgot-password">Forgot?</Link>
+                    <Link href="/forgot-password">{t('Forgot?')}</Link>
                   </Button>
                 </div>
                 <FormControl>
@@ -134,19 +141,19 @@ export function LoginForm(): JSX.Element {
           />
 
           <Button type="submit" className="mt-4 w-full" loading={isLoading}>
-            Sign in
+            {t('Sign in')}
           </Button>
         </form>
       </Form>
 
       <p className="flex items-center justify-center gap-1 text-center text-sm text-secondary">
-        Don&apos;t have an account?
+        {t("Don't have an account?")}
         <Button
           variant="link"
           asChild
           className="h-auto p-0 font-medium no-underline hover:text-brand"
         >
-          <Link href="/register">Create one</Link>
+          <Link href="/register">{t('Create one')}</Link>
         </Button>
       </p>
     </div>

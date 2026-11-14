@@ -1,6 +1,7 @@
 'use client';
 
 import { addDays, differenceInCalendarDays } from 'date-fns';
+import { enUS, pl } from 'date-fns/locale';
 import { CalendarDays } from 'lucide-react';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
@@ -10,6 +11,7 @@ import { type DateRange as DayPickerRange } from 'react-day-picker';
 import { Button } from '@/shared/components/ui/button';
 import { Calendar } from '@/shared/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateLabel, parseDateInput, toDateInput } from '@/shared/lib/date';
 
@@ -29,6 +31,7 @@ export function DateRangePicker({
   maxDays,
 }: DateRangePickerProps): JSX.Element {
   const [open, setOpen] = useState(false);
+  const { locale } = useLanguage();
 
   const selected: DayPickerRange = useMemo(
     () => ({ from: parseDateInput(startDate), to: parseDateInput(endDate) }),
@@ -58,8 +61,8 @@ export function DateRangePicker({
   const isSameDay = toDateInput(from) === toDateInput(to);
 
   const label = isSameDay
-    ? formatDateLabel(from)
-    : `${formatDateLabel(from)} — ${formatDateLabel(to)}`;
+    ? formatDateLabel(from, locale)
+    : `${formatDateLabel(from, locale)} — ${formatDateLabel(to, locale)}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -87,6 +90,7 @@ export function DateRangePicker({
           defaultMonth={selected.from}
           disabled={{ after: new Date() }}
           numberOfMonths={2}
+          locale={locale === 'pl' ? pl : enUS}
         />
       </PopoverContent>
     </Popover>

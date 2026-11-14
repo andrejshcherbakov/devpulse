@@ -5,6 +5,8 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 import { type EventHandler, Joyride, type Locale, type Options, STATUS } from 'react-joyride';
 
+import { useLanguage } from '@/shared/i18/language-context';
+
 import { findTourById, findTourByPath } from './tour-steps';
 import { hasSeenTour, markTourSeen } from './tour-storage';
 import { tourStore } from './tour-store';
@@ -24,19 +26,12 @@ const TOUR_OPTIONS: Partial<Options> = {
   dismissKeyAction: false,
 };
 
-const TOUR_LOCALE: Locale = {
-  back: 'Back',
-  close: 'Close',
-  last: 'Done',
-  next: 'Next',
-  skip: 'Skip',
-};
-
 interface DashboardTourProps {
   userId: string;
 }
 
 export function DashboardTour({ userId }: DashboardTourProps): JSX.Element | null {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const activeTourId = useSyncExternalStore(
     tourStore.subscribe,
@@ -58,6 +53,20 @@ export function DashboardTour({ userId }: DashboardTourProps): JSX.Element | nul
   const tour = activeTourId ? findTourById(activeTourId) : undefined;
   if (!tour) return null;
 
+  const translatedSteps = tour.steps.map((step) => ({
+    ...step,
+    title: typeof step.title === 'string' ? t(step.title) : step.title,
+    content: typeof step.content === 'string' ? t(step.content) : step.content,
+  }));
+
+  const tourLocale: Locale = {
+    back: t('Back'),
+    close: t('Close'),
+    last: t('Done'),
+    next: t('Next'),
+    skip: t('Skip'),
+  };
+
   const handleEvent: EventHandler = (data) => {
     if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
       markTourSeen(tour.id, userId);
@@ -70,9 +79,9 @@ export function DashboardTour({ userId }: DashboardTourProps): JSX.Element | nul
       key={tour.id}
       run
       continuous
-      steps={tour.steps}
+      steps={translatedSteps}
       options={TOUR_OPTIONS}
-      locale={TOUR_LOCALE}
+      locale={tourLocale}
       tooltipComponent={TourTooltip}
       floatingOptions={{ hideArrow: true }}
       onEvent={handleEvent}

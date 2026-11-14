@@ -4,6 +4,7 @@ import { ArrowUpRight, Clock, FolderGit2, Layers, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { type JSX } from 'react/jsx-runtime';
 
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateTimeLabel } from '@/shared/lib/date';
 import { type ProjectSummary } from '@/shared/types';
@@ -14,10 +15,16 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Element {
+  const { locale, t } = useLanguage();
+
   return (
     <Link
       href={`/projects/${project.id}`}
-      aria-label={`View details for project ${project.name}`}
+      aria-label={
+        locale === 'pl'
+          ? `Wyświetl szczegóły projektu ${project.name}`
+          : `View details for project ${project.name}`
+      }
       className={cn(
         'interactive-surface group relative flex min-h-64 flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.07] bg-surface/90 p-5',
         'shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_18px_50px_rgba(0,0,0,0.12)] outline-none',
@@ -42,7 +49,7 @@ export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Elemen
             <div className="min-w-0">
               <h3 className="truncate text-sm font-medium text-foreground">{project.name}</h3>
               <p className="mt-0.5 truncate font-mono text-xs text-subtle">
-                {project.remote ?? 'Local repository'}
+                {project.remote ?? t('Local repository')}
               </p>
             </div>
           </div>
@@ -62,7 +69,7 @@ export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Elemen
         <div className="flex flex-col">
           <span className="flex items-center gap-1 text-xs text-subtle">
             <Clock className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
-            Time
+            {t('Time')}
           </span>
           <span className="mt-1 font-mono text-xs font-medium text-foreground tabular-nums">
             {project.activeTime}
@@ -72,7 +79,7 @@ export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Elemen
         <div className="flex flex-col">
           <span className="flex items-center gap-1 text-xs text-subtle">
             <Zap className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
-            Focus
+            {t('Focus')}
           </span>
           <span className="mt-1 font-mono text-xs font-medium text-brand tabular-nums">
             {project.focusScore}%
@@ -82,7 +89,7 @@ export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Elemen
         <div className="flex flex-col">
           <span className="flex items-center gap-1 text-xs text-subtle">
             <Layers className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
-            Sessions
+            {t('Sessions')}
           </span>
           <span className="mt-1 font-mono text-xs font-medium text-foreground tabular-nums">
             {project.sessions}
@@ -91,9 +98,11 @@ export function ProjectCard({ project, timezone }: ProjectCardProps): JSX.Elemen
       </div>
 
       <div className="mt-4 flex items-center justify-between text-xs text-subtle">
-        <span>Last active</span>
+        <span>{t('Last active')}</span>
         <span className="font-medium text-secondary" suppressHydrationWarning>
-          {project.lastActive ? formatDateTimeLabel(project.lastActive, timezone) : 'Never'}
+          {project.lastActive
+            ? formatDateTimeLabel(project.lastActive, timezone, locale)
+            : t('Never')}
         </span>
       </div>
     </Link>

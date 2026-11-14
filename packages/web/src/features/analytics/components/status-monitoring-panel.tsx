@@ -5,6 +5,7 @@ import { Activity, AlertCircle, CheckCircle2, Cpu, Database, Radio } from 'lucid
 import { type JSX } from 'react/jsx-runtime';
 
 import { Panel } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
 import { usePipelineHealth } from '../hooks';
@@ -16,6 +17,7 @@ const PROVIDER_LABELS: Record<'openrouter' | 'openai' | 'custom', string> = {
 };
 
 export function StatusMonitoringPanel(): JSX.Element | null {
+  const { locale, t } = useLanguage();
   const { data: health, isLoading } = usePipelineHealth();
 
   if (isLoading) {
@@ -39,7 +41,9 @@ export function StatusMonitoringPanel(): JSX.Element | null {
             ? 'Receiving signals'
             : health.telemetryBridge.minutesSinceLastEvent === null
               ? 'Last event time unavailable'
-              : `Last seen ${formatMinutes(health.telemetryBridge.minutesSinceLastEvent)} ago`,
+              : locale === 'pl'
+                ? `Ostatni sygnał ${formatMinutes(health.telemetryBridge.minutesSinceLastEvent)} temu`
+                : `Last seen ${formatMinutes(health.telemetryBridge.minutesSinceLastEvent)} ago`,
       icon: Radio,
     },
     {
@@ -47,14 +51,21 @@ export function StatusMonitoringPanel(): JSX.Element | null {
       status: health.bullmq.status,
       metric:
         health.bullmq.failed > 0
-          ? `${String(health.bullmq.failed)} failed jobs`
-          : `${String(health.bullmq.waiting)} waiting · ${String(health.bullmq.active)} active`,
+          ? locale === 'pl'
+            ? `${String(health.bullmq.failed)} nieudanych zadań`
+            : `${String(health.bullmq.failed)} failed jobs`
+          : locale === 'pl'
+            ? `${String(health.bullmq.waiting)} oczekuje · ${String(health.bullmq.active)} aktywnych`
+            : `${String(health.bullmq.waiting)} waiting · ${String(health.bullmq.active)} active`,
       icon: Cpu,
     },
     {
       name: 'PostgreSQL & Cache',
       status: health.postgres.status,
-      metric: `${String(health.postgres.latencyMs)}ms query latency`,
+      metric:
+        locale === 'pl'
+          ? `${String(health.postgres.latencyMs)}ms opóźnienia zapytania`
+          : `${String(health.postgres.latencyMs)}ms query latency`,
       icon: Database,
     },
     {
@@ -92,9 +103,9 @@ export function StatusMonitoringPanel(): JSX.Element | null {
               <Activity className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">Pipeline Health & Ingestion</h3>
+              <h3 className="text-sm font-medium text-foreground">{t('Pipeline Health & Ingestion')}</h3>
               <p className="text-xs text-subtle">
-                Real-time status of telemetry collectors and worker queues
+                {t('Real-time status of telemetry collectors and worker queues')}
               </p>
             </div>
           </div>
@@ -103,7 +114,7 @@ export function StatusMonitoringPanel(): JSX.Element | null {
             className={cn('flex items-center gap-2 rounded-full border px-3 py-1', overallClass)}
           >
             <span className="h-2 w-2 rounded-full bg-current shadow-[0_0_8px_currentColor]" />
-            <span className="font-mono text-xs font-medium">{overallLabel}</span>
+            <span className="font-mono text-xs font-medium">{t(overallLabel)}</span>
           </div>
         </div>
 
@@ -122,12 +133,12 @@ export function StatusMonitoringPanel(): JSX.Element | null {
                 className="flex min-h-24 flex-col justify-between rounded-xl border border-border bg-white/2 p-3.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-subtle">{srv.name}</span>
+                  <span className="text-xs text-subtle">{t(srv.name)}</span>
                   <Icon className="h-3.5 w-3.5 text-subtle" />
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <span className="truncate font-mono text-xs font-medium text-foreground">
-                    {srv.metric}
+                    {t(srv.metric)}
                   </span>
                   <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', dotColor)} />
                 </div>

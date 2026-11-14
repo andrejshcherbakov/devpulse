@@ -2,6 +2,7 @@
 
 import { type JSX } from 'react/jsx-runtime';
 
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { METHOD_STYLES } from '@/shared/lib/docs-constants';
 
@@ -44,6 +45,7 @@ export function EndpointCard({
   responseExample,
   id,
 }: EndpointCardProps): JSX.Element {
+  const { t } = useLanguage();
   const hasParameters = parameters && parameters.length > 0;
   const methodStyle = METHOD_STYLES[method as keyof typeof METHOD_STYLES] || METHOD_STYLES.GET;
 
@@ -95,10 +97,10 @@ export function EndpointCard({
             <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-gray-alpha-50">
-                  <th className="w-32 px-4 py-2 text-left font-medium text-subtle">Name</th>
-                  <th className="w-24 px-4 py-2 text-left font-medium text-subtle">Location</th>
-                  <th className="w-24 px-4 py-2 text-left font-medium text-subtle">Type</th>
-                  <th className="px-4 py-2 text-left font-medium text-subtle">Description</th>
+                  <th className="w-32 px-4 py-2 text-left font-medium text-subtle">{t('Name')}</th>
+                  <th className="w-24 px-4 py-2 text-left font-medium text-subtle">{t('Location')}</th>
+                  <th className="w-24 px-4 py-2 text-left font-medium text-subtle">{t('Type')}</th>
+                  <th className="px-4 py-2 text-left font-medium text-subtle">{t('Description')}</th>
                 </tr>
               </thead>
               <tbody>

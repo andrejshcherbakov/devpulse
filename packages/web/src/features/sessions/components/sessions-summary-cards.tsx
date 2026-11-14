@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Panel } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { type WorkSessionSummary } from '@/shared/types';
 
@@ -20,6 +21,7 @@ export function SessionsSummaryCards({
   isLoading,
   uniqueProjectsCount,
 }: SessionsSummaryCardsProps): JSX.Element {
+  const { t } = useLanguage();
   const totalSeconds = useMemo(() => {
     return sessions.reduce((acc, session) => acc + session.durationSeconds, 0);
   }, [sessions]);
@@ -77,7 +79,7 @@ export function SessionsSummaryCards({
             >
               <span className="flex items-center gap-1.5 text-xs text-subtle">
                 <Icon className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
-                {metric.label}
+                {t(metric.label)}
               </span>
               <span
                 className={cn(

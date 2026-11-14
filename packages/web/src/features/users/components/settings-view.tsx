@@ -15,22 +15,24 @@ import {
 } from '@/shared/components/layout/page';
 import { Panel, PanelHeader, PanelTitle } from '@/shared/components/layout/panel';
 import { RestartTourButton } from '@/shared/components/onboarding/restart-tour-button';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { LlmSettings } from './llm-settings';
 import { TimezonePreference } from './timezone-preference';
 
 export function SettingsView(): JSX.Element {
   const { user, updateProfile } = useRequireAuth();
+  const { t } = useLanguage();
 
   return (
     <Page className="mx-auto max-w-4xl">
       <PageHeader>
         <div>
-          <PageEyebrow>Workspace controls</PageEyebrow>
+          <PageEyebrow>{t('Workspace controls')}</PageEyebrow>
           <PageHeaderHeading>
-            <PageTitle>Settings</PageTitle>
+            <PageTitle>{t('Settings')}</PageTitle>
           </PageHeaderHeading>
-          <PageDescription>Manage your account and preferences</PageDescription>
+          <PageDescription>{t('Manage your account and preferences')}</PageDescription>
         </div>
       </PageHeader>
 
@@ -40,7 +42,7 @@ export function SettingsView(): JSX.Element {
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Preferences</PanelTitle>
+          <PanelTitle>{t('Preferences')}</PanelTitle>
         </PanelHeader>
 
         <div className="flex flex-col gap-6">
@@ -53,9 +55,9 @@ export function SettingsView(): JSX.Element {
                 <Globe className="h-4.5 w-4.5 text-subtle" strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Timezone</p>
+                <p className="text-sm font-medium text-foreground">{t('Timezone')}</p>
                 <p className="mt-0.5 text-xs text-subtle">
-                  Used for calculating daily active coding sessions and metrics
+                  {t('Used for calculating daily active coding sessions and metrics')}
                 </p>
               </div>
             </div>
@@ -75,9 +77,11 @@ export function SettingsView(): JSX.Element {
                 <Key className="h-4.5 w-4.5 text-subtle" strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">AI provider</p>
+                <p className="text-sm font-medium text-foreground">{t('AI provider')}</p>
                 <p className="mt-0.5 max-w-sm text-xs text-subtle">
-                  Required to generate AI worklogs. OpenRouter, OpenAI or any OpenAI-compatible API.
+                  {t(
+                    'Required to generate AI worklogs. OpenRouter, OpenAI or any OpenAI-compatible API.',
+                  )}
                 </p>
               </div>
             </div>
@@ -103,9 +107,9 @@ export function SettingsView(): JSX.Element {
                 <Compass className="h-4.5 w-4.5 text-subtle" strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Onboarding tour</p>
+                <p className="text-sm font-medium text-foreground">{t('Onboarding tour')}</p>
                 <p className="mt-0.5 max-w-sm text-xs text-subtle">
-                  Replay the guided tour of every page, starting from the dashboard
+                  {t('Replay the guided tour of every page, starting from the dashboard')}
                 </p>
               </div>
             </div>

@@ -16,6 +16,7 @@ import {
 import { Panel, PanelHeader } from '@/shared/components/layout/panel';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { useProjects } from '../hooks';
 import { ProjectCard } from './project-card';
@@ -24,6 +25,7 @@ export function ProjectListView(): JSX.Element {
   const { data: projects = [], isLoading, error } = useProjects();
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useRequireAuth();
+  const { locale, t } = useLanguage();
 
   const filteredProjects = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -40,12 +42,12 @@ export function ProjectListView(): JSX.Element {
     <Page>
       <PageHeader>
         <div>
-          <PageEyebrow>Workspace library</PageEyebrow>
+          <PageEyebrow>{t('Workspace library')}</PageEyebrow>
           <PageHeaderHeading>
-            <PageTitle>Projects</PageTitle>
+            <PageTitle>{t('Projects')}</PageTitle>
           </PageHeaderHeading>
           <PageDescription>
-            All repositories tracked by your workspace and VS Code extension.
+            {t('All repositories tracked by your workspace and VS Code extension.')}
           </PageDescription>
         </div>
       </PageHeader>
@@ -61,12 +63,12 @@ export function ProjectListView(): JSX.Element {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search projects by name..."
+              placeholder={t('Search projects by name...')}
               className="pl-8"
             />
           </div>
           <div className="flex items-center gap-2 self-end text-xs text-subtle sm:self-auto">
-            <span>Total projects:</span>
+            <span>{t('Total projects:')}</span>
             <span className="font-mono text-xs font-medium text-foreground tabular-nums">
               {isLoading ? '—' : filteredProjects.length}
             </span>
@@ -77,15 +79,15 @@ export function ProjectListView(): JSX.Element {
       <div data-tour="projects-list">
         {isLoading && (
           <Panel className="flex h-48 items-center justify-center">
-            <span className="animate-pulse text-sm text-secondary">Loading repositories…</span>
+            <span className="animate-pulse text-sm text-secondary">{t('Loading repositories…')}</span>
           </Panel>
         )}
 
         {error && (
           <div className="flex h-32 flex-col items-center justify-center rounded-2xl border border-red-coral/20 bg-red-coral/10 p-4 text-center">
-            <p className="text-sm font-medium text-red-coral">Failed to load projects</p>
+            <p className="text-sm font-medium text-red-coral">{t('Failed to load projects')}</p>
             <p className="mt-1 text-xs text-red-coral/80">
-              {error instanceof Error ? error.message : 'Unknown error'}
+              {error instanceof Error ? error.message : t('Unknown error')}
             </p>
           </div>
         )}
@@ -95,9 +97,9 @@ export function ProjectListView(): JSX.Element {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-gray-alpha-50">
               <FolderGit2 className="h-6 w-6 text-subtle" strokeWidth={1.5} aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-medium text-foreground">No projects found</h3>
+            <h3 className="text-sm font-medium text-foreground">{t('No projects found')}</h3>
             <p className="mt-1 max-w-md text-sm text-secondary">
-              Make sure your VS Code extension is active and tracking your workspace.
+              {t('Make sure your VS Code extension is active and tracking your workspace.')}
             </p>
           </Panel>
         )}
@@ -105,10 +107,11 @@ export function ProjectListView(): JSX.Element {
         {!isLoading && !error && projects.length > 0 && filteredProjects.length === 0 && (
           <Panel className="py-12 text-center">
             <p className="text-sm text-secondary">
-              No projects matching &ldquo;{searchQuery}&rdquo;
+              {locale === 'pl' ? 'Brak projektów pasujących do' : 'No projects matching'} &ldquo;
+              {searchQuery}&rdquo;
             </p>
             <Button variant="link" size="sm" onClick={() => setSearchQuery('')} className="mt-2">
-              Clear search query
+              {t('Clear search query')}
             </Button>
           </Panel>
         )}

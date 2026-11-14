@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
+import { LanguageSwitcher } from '@/shared/components/layout/language-switcher';
 import { Button } from '@/shared/components/ui/button';
 import { useIntersectionObserver } from '@/shared/hooks/use-intersection-observer';
+import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { type EndpointData, groupEndpointsByPath } from '@/shared/lib/docs';
 
@@ -17,6 +19,7 @@ interface DocsLayoutWrapperProps {
 
 export function DocsLayoutWrapper({ children, endpoints }: DocsLayoutWrapperProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
   const { activeId, mainRef } = useIntersectionObserver();
 
   const navigation = useMemo(() => groupEndpointsByPath(endpoints), [endpoints]);
@@ -45,7 +48,7 @@ export function DocsLayoutWrapper({ children, endpoints }: DocsLayoutWrapperProp
               strokeWidth={1.5}
             />
             <span className="font-mono text-xs text-secondary transition-colors group-hover:text-foreground">
-              Dashboard
+              {t('Dashboard')}
             </span>
           </Link>
           <Button
@@ -56,6 +59,9 @@ export function DocsLayoutWrapper({ children, endpoints }: DocsLayoutWrapperProp
           >
             <X strokeWidth={1.5} />
           </Button>
+          <div className="hidden lg:block">
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
@@ -63,7 +69,7 @@ export function DocsLayoutWrapper({ children, endpoints }: DocsLayoutWrapperProp
             <div className="mb-1 text-xs font-medium tracking-wider text-subtle uppercase">
               DevPulse API
             </div>
-            <div className="text-xs text-secondary">v1.0 Public Reference</div>
+            <div className="text-xs text-secondary">v1.0 {t('Public Reference')}</div>
           </div>
 
           {navigation.map((group) => (
@@ -104,7 +110,10 @@ export function DocsLayoutWrapper({ children, endpoints }: DocsLayoutWrapperProp
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)}>
             <Menu strokeWidth={1.5} />
           </Button>
-          <span className="text-sm font-medium text-foreground">API Reference</span>
+          <span className="text-sm font-medium text-foreground">{t('API Reference')}</span>
+          <div className="ml-auto">
+            <LanguageSwitcher />
+          </div>
         </header>
 
         <main

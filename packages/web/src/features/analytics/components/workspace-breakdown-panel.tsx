@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { useLanguage } from '@/shared/i18/language-context';
 
 import { type DateRange, useBranchesDistribution, useLanguagesBreakdown } from '../hooks';
 
@@ -23,6 +24,7 @@ export function WorkspaceBreakdownPanel({
   range,
   projectId,
 }: WorkspaceBreakdownPanelProps): JSX.Element {
+  const { t } = useLanguage();
   const { data: branches = [], isLoading: branchesLoading } = useBranchesDistribution(
     range,
     projectId,
@@ -34,21 +36,21 @@ export function WorkspaceBreakdownPanel({
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>Workspace mix</PanelTitle>
-          <PanelDescription>Languages and branches at a glance</PanelDescription>
+          <PanelTitle>{t('Workspace mix')}</PanelTitle>
+          <PanelDescription>{t('Languages and branches at a glance')}</PanelDescription>
         </div>
       </PanelHeader>
 
       <PanelContent>
         {isLoading ? (
           <div className="flex min-h-64 items-center justify-center text-sm text-secondary">
-            Loading breakdown…
+            {t('Loading breakdown…')}
           </div>
         ) : (
           <div className="space-y-6">
             <div>
               <div className="mb-3 flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] text-subtle uppercase">
-                <Braces className="h-3.5 w-3.5" strokeWidth={1.5} /> Languages
+                <Braces className="h-3.5 w-3.5" strokeWidth={1.5} /> {t('Languages')}
               </div>
               <div className="space-y-3">
                 {(languages?.languages ?? []).slice(0, 4).map((language) => (
@@ -70,14 +72,14 @@ export function WorkspaceBreakdownPanel({
                   </div>
                 ))}
                 {(languages?.languages.length ?? 0) === 0 && (
-                  <p className="text-xs text-subtle">No language activity yet</p>
+                  <p className="text-xs text-subtle">{t('No language activity yet')}</p>
                 )}
               </div>
             </div>
 
             <div className="border-t border-border pt-5">
               <div className="mb-2 flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] text-subtle uppercase">
-                <GitBranch className="h-3.5 w-3.5" strokeWidth={1.5} /> Branches
+                <GitBranch className="h-3.5 w-3.5" strokeWidth={1.5} /> {t('Branches')}
               </div>
               <div className="divide-y divide-border">
                 {branches.slice(0, 5).map((branch) => (
@@ -94,7 +96,7 @@ export function WorkspaceBreakdownPanel({
                   </div>
                 ))}
                 {branches.length === 0 && (
-                  <p className="py-2.5 text-xs text-subtle">No branch activity yet</p>
+                  <p className="py-2.5 text-xs text-subtle">{t('No branch activity yet')}</p>
                 )}
               </div>
             </div>
