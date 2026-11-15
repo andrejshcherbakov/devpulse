@@ -30,7 +30,7 @@ import { PendingBuffer } from './bridge/pending-buffer.js';
 import { MissingApiKeyError, TelemetryApiClient } from './api-client.js';
 import {
   type BufferedTelemetryBatch,
-  MAX_BUFFER_SIZE,
+  limitBufferState,
   TelemetryBufferStore,
 } from './buffer-store.js';
 import { TelemetryRequestError } from './telemetry-request-error.js';
@@ -51,7 +51,7 @@ export class TelemetryBridge implements vscode.Disposable {
   private readonly client: TelemetryApiClient;
   private readonly bufferStore: TelemetryBufferStore;
   private readonly contextTracker: ContextTracker;
-  private readonly pendingBuffer = new PendingBuffer();
+  private readonly pendingGitContextEvents = new PendingBuffer();
   private readonly flushScheduler: FlushScheduler;
   private inflight: BufferedTelemetryBatch | null = null;
 
@@ -71,7 +71,7 @@ export class TelemetryBridge implements vscode.Disposable {
   private lastSyncError: string | null = null;
 
   constructor(
-    private readonly context: vscode.ExtensionContext,
+    context: vscode.ExtensionContext,
     private readonly activityMonitor: ActivityMonitor,
     private readonly aiMonitor: AiMonitor,
     private readonly gitContextProvider: GitContextProvider,
@@ -84,7 +84,7 @@ export class TelemetryBridge implements vscode.Disposable {
     private readonly log?: vscode.LogOutputChannel,
   ) {
     this.client = new TelemetryApiClient(context, log);
-    this.bufferStore = new TelemetryBufferStore(log);
+    this.bufferStore = new TelemetryBufferStore(context.globalState, log);
     this.contextTracker = new ContextTracker(log);
     this.flushScheduler = new FlushScheduler({
       flush: () => {
@@ -138,7 +138,7 @@ export class TelemetryBridge implements vscode.Disposable {
 
   public async start(): Promise<void> {
     try {
-      const buffered = this.bufferStore.load(this.context);
+      const buffered = this.bufferStore.load();
       this.queue = buffered.queue;
       this.inflight = buffered.inflight;
     } catch (error) {
@@ -194,9 +194,9 @@ export class TelemetryBridge implements vscode.Disposable {
     this.bufferCleared = true;
     this.queue = [];
     this.inflight = null;
-    this.pendingBuffer.clear();
+    this.pendingGitContextEvents.clear();
     await this.savePromise;
-    await this.bufferStore.clear(this.context);
+    await this.bufferStore.clear();
   }
 
   private registerListeners(): void {
@@ -308,7 +308,7 @@ export class TelemetryBridge implements vscode.Disposable {
           `terminal: ${sanitized} (exit=${String(event.exitCode ?? 'n/a')}, ${String(event.durationMs)}ms)`,
         );
 
-        this.enqueueWithBuffer('terminal_command', {
+        this.enqueueWhenGitContextIsAvailable('terminal_command', {
           command: sanitized,
           commandCwd: event.cwd,
           exitCode: event.exitCode,
@@ -322,7 +322,7 @@ export class TelemetryBridge implements vscode.Disposable {
           `task: ${event.name} (exit=${String(event.exitCode ?? 'n/a')}, ${String(event.durationMs)}ms)`,
         );
 
-        this.enqueueWithBuffer('task_run', {
+        this.enqueueWhenGitContextIsAvailable('task_run', {
           taskName: event.name,
           taskSource: event.source,
           exitCode: event.exitCode,
@@ -472,7 +472,7 @@ export class TelemetryBridge implements vscode.Disposable {
     }
 
     if (result === 'restored') {
-      this.flushPendingBuffer();
+      this.flushPendingGitContextEvents();
       return;
     }
 
@@ -494,7 +494,7 @@ export class TelemetryBridge implements vscode.Disposable {
       );
     }
 
-    this.flushPendingBuffer();
+    this.flushPendingGitContextEvents();
   }
 
   private enqueue(event: TelemetryEventDto): void {
@@ -526,23 +526,28 @@ export class TelemetryBridge implements vscode.Disposable {
   }
 
   private enforceBufferLimit(): void {
-    const inflightSize = this.inflight?.events.length ?? 0;
-    const queueCapacity = Math.max(0, MAX_BUFFER_SIZE - inflightSize);
-    const dropped = Math.max(0, this.queue.length - queueCapacity);
-    if (dropped === 0) return;
+    const limited = limitBufferState({ queue: this.queue, inflight: this.inflight });
+    if (limited.dropped === 0) return;
 
-    this.queue.splice(0, dropped);
-    this.log?.warn(`Buffer overflow: dropped ${String(dropped)} oldest queued events`);
+    this.queue = limited.state.queue;
+    this.inflight = limited.state.inflight;
+    this.log?.warn(
+      `Buffer overflow: dropped ${String(limited.dropped)} oldest queued events`,
+    );
   }
 
-  private enqueueWithBuffer(type: 'terminal_command' | 'task_run', partial: EventPartial): void {
+  private enqueueWhenGitContextIsAvailable(
+    type: 'terminal_command' | 'task_run',
+    partial: EventPartial,
+  ): void {
     if (this.stopped || this.paused) return;
     const event = this.create(type, partial);
 
     if (event.gitBranch === null) {
-      this.pendingBuffer.push({ type, partial, createdAt: Date.now() });
+      this.pendingGitContextEvents.push({ type, partial, createdAt: Date.now() });
       this.log?.info(
-        `buffered ${type}: waiting for git context (${String(this.pendingBuffer.size)} in buffer)`,
+        `buffered ${type}: waiting for git context ` +
+          `(${String(this.pendingGitContextEvents.size)} pending)`,
       );
       return;
     }
@@ -550,8 +555,8 @@ export class TelemetryBridge implements vscode.Disposable {
     this.enqueue(event);
   }
 
-  private flushPendingBuffer(): void {
-    const { valid, dropped } = this.pendingBuffer.drain();
+  private flushPendingGitContextEvents(): void {
+    const { valid, dropped } = this.pendingGitContextEvents.drain();
 
     if (dropped > 0) {
       this.log?.info(`dropped ${String(dropped)} buffered events (too old)`);
@@ -579,7 +584,7 @@ export class TelemetryBridge implements vscode.Disposable {
     };
 
     this.savePromise = this.savePromise
-      .then(() => this.bufferStore.save(this.context, snapshot))
+      .then(() => this.bufferStore.save(snapshot))
       .catch((error: unknown) => {
         this.log?.error(`buffer save failed: ${String(error)}`);
       });
@@ -598,7 +603,7 @@ export class TelemetryBridge implements vscode.Disposable {
     this.stopped = true;
     this.flushScheduler.stop();
     this.contextTracker.reset();
-    this.pendingBuffer.clear();
+    this.pendingGitContextEvents.clear();
   }
 
   public async flush(signal?: AbortSignal, force = false): Promise<void> {

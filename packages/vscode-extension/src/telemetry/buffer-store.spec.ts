@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import type * as vscode from 'vscode';
-
 import type { TelemetryEventDto } from '@devpulse/lib';
 
 import { limitBufferState, MAX_BUFFER_SIZE, TelemetryBufferStore } from './buffer-store.js';
@@ -12,6 +10,27 @@ function event(index: number): TelemetryEventDto {
     type: 'heartbeat',
     gitBranch: 'main',
     clientTimestamp: new Date(index).toISOString(),
+  };
+}
+
+function createStorage(initialValue?: unknown): {
+  storage: {
+    get(key: string): unknown;
+    update(key: string, value: unknown): Promise<void>;
+  };
+  getStoredValue: () => unknown;
+} {
+  let storedValue = initialValue;
+
+  return {
+    storage: {
+      get: (_key: string): unknown => storedValue,
+      update: (_key: string, value: unknown): Promise<void> => {
+        storedValue = value;
+        return Promise.resolve();
+      },
+    },
+    getStoredValue: () => storedValue,
   };
 }
 
@@ -43,39 +62,32 @@ void describe('limitBufferState', () => {
 
 void describe('TelemetryBufferStore', () => {
   void it('persists the stable batch id together with queued events', async () => {
-    let stored: unknown;
-    const context = {
-      globalState: {
-        get: () => stored,
-        update: (_key: string, value: unknown) => {
-          stored = value;
-          return Promise.resolve();
-        },
-      },
-    } as unknown as vscode.ExtensionContext;
-    const store = new TelemetryBufferStore();
+    const { storage, getStoredValue } = createStorage();
+    const store = new TelemetryBufferStore(storage);
 
-    await store.save(context, {
+    await store.save({
       queue: [event(2)],
       inflight: { batchId: 'stable-batch', events: [event(1)] },
     });
 
-    const loaded = store.load(context);
+    const stored = getStoredValue();
+    assert.deepEqual(stored, {
+      queue: [event(2)],
+      inflight: { batchId: 'stable-batch', events: [event(1)] },
+    });
+
+    const loaded = store.load();
     assert.ok(loaded.inflight);
     assert.equal(loaded.inflight.batchId, 'stable-batch');
     assert.equal(loaded.inflight.events.length, 1);
     assert.equal(loaded.queue.length, 1);
   });
 
-  void it('migrates the previous queue-only schema', () => {
-    const context = {
-      globalState: {
-        get: () => ({ version: 2, events: [event(1), event(2)] }),
-      },
-    } as unknown as vscode.ExtensionContext;
+  void it('discards malformed stored data', () => {
+    const { storage } = createStorage({ queue: [event(1)] });
 
-    const loaded = new TelemetryBufferStore().load(context);
+    const loaded = new TelemetryBufferStore(storage).load();
     assert.equal(loaded.inflight, null);
-    assert.equal(loaded.queue.length, 2);
+    assert.equal(loaded.queue.length, 0);
   });
 });
