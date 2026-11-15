@@ -20,16 +20,17 @@ import {
 import { useLiveAnalyticsUpdates } from '../use-live-analytics-updates';
 import { ActivityChartPanel } from './activity-chart-panel';
 import { AiRoiPanel } from './ai-roi-panel';
+import { BranchesPanel } from './branches-panel';
 import { ComparisonPanel } from './comparison-panel';
 import { DashboardHero } from './dashboard-hero';
 import { DashboardSummaryCards } from './dashboard-summary-cards';
 import { HeatmapPanel } from './heatmap-panel';
 import { HotFilesPanel } from './hot-files-panel';
+import { LanguagesPanel } from './languages-panel';
 import { ProjectSelector } from './project-selector';
 import { StatusMonitoringPanel } from './status-monitoring-panel';
 import { TerminalActivityPanel } from './terminal-activity-panel';
 import { TimeSwitcher } from './time-switcher';
-import { WorkspaceBreakdownPanel } from './workspace-breakdown-panel';
 
 function SectionHeading({
   index,
@@ -41,11 +42,15 @@ function SectionHeading({
   description: string;
 }): JSX.Element {
   return (
-    <div className="flex items-end gap-4 border-b border-border pb-3">
-      <span className="pb-0.5 font-mono text-[10px] tracking-[0.18em] text-brand">{index}</span>
-      <div>
-        <h2 className="text-lg font-medium tracking-[-0.02em] text-foreground">{title}</h2>
-        <p className="mt-0.5 text-xs text-subtle">{description}</p>
+    <div className="flex items-start gap-3 border-b border-border pb-3.5">
+      <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-brand/20 bg-brand/[0.07] px-1.5 font-mono text-[10px] font-medium tracking-[0.08em] text-brand">
+        {index}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-[15px] leading-5 font-semibold tracking-[-0.01em] text-foreground">
+          {title}
+        </h2>
+        <p className="mt-1 text-[13px] leading-5 text-secondary">{description}</p>
       </div>
     </div>
   );
@@ -130,15 +135,20 @@ export function DashboardView({
           title={t('Patterns')}
           description={t('Where consistency, tools and attention accumulate over time.')}
         />
-        <div data-tour="heatmap">
-          <HeatmapPanel range={initialHeatmapRange} projectId={projectId} />
-        </div>
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+          <div data-tour="heatmap" className="xl:col-span-9 [&>div]:h-full">
+            <HeatmapPanel range={initialHeatmapRange} projectId={projectId} />
+          </div>
+          <div className="xl:col-span-3 [&>div]:h-full">
+            <LanguagesPanel projectId={projectId} />
+          </div>
+        </div>
+        <div data-tour="breakdown" className="grid grid-cols-1 gap-5 xl:grid-cols-12">
           <div data-tour="hot-files" className="xl:col-span-8 [&>div]:h-full">
             <HotFilesPanel range={range} projectId={projectId} />
           </div>
-          <div data-tour="breakdown" className="xl:col-span-4 [&>div]:h-full">
-            <WorkspaceBreakdownPanel range={range} projectId={projectId} />
+          <div className="xl:col-span-4 [&>div]:h-full">
+            <BranchesPanel range={range} projectId={projectId} />
           </div>
         </div>
       </section>

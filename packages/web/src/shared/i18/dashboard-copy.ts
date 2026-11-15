@@ -70,6 +70,9 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'No branches': 'Brak gałęzi',
   Languages: 'Języki',
   'Programming languages': 'Języki programowania',
+  'Language footprint': 'Udział języków',
+  'Share of all tracked active time by language':
+    'Udział całego zarejestrowanego czasu aktywnego według języka',
   'No language activity yet': 'Brak danych o językach',
   'Workspace mix': 'Struktura obszaru roboczego',
   'Languages and branches at a glance': 'Podsumowanie języków i gałęzi',
@@ -181,6 +184,9 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   Session: 'Sesja',
   Perspective: 'Zakres danych',
   'Shape every insight with one shared filter.': 'Ustaw wspólny filtr dla wszystkich danych.',
+  Filters: 'Filtry',
+  'Choose a project and time range for the dashboard.':
+    'Wybierz projekt i zakres czasu dla panelu.',
   'Confirmed idle periods are excluded automatically':
     'Potwierdzone okresy bezczynności są automatycznie pomijane',
   average: 'średnia',
