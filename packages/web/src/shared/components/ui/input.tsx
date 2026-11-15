@@ -24,8 +24,8 @@ const inputVariants = cva(
       },
       size: {
         sm: 'h-7 rounded-lg px-2 text-xs',
-        default: 'h-8 rounded-[10px] px-2.5 text-[13px]',
-        lg: 'h-10 rounded-xl px-3 text-sm',
+        default: 'h-8 rounded-lg px-2.5 text-[13px]',
+        lg: 'h-10 rounded-lg px-3 text-sm',
       },
     },
     defaultVariants: {

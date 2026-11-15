@@ -23,7 +23,7 @@ export function ProjectSelector({ value, onChange }: ProjectSelectorProps): JSX.
 
   return (
     <Select value={value ?? 'all'} onValueChange={(v) => onChange(v === 'all' ? undefined : v)}>
-      <SelectTrigger className="h-9 w-40">
+      <SelectTrigger className="h-8 w-44 border-white/10 bg-black/20">
         <SelectValue placeholder={t('All projects')} />
       </SelectTrigger>
       <SelectContent>

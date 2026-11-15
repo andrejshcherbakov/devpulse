@@ -1,5 +1,7 @@
 import './globals.css';
 
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { type JSX } from 'react/jsx-runtime';
 
@@ -16,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): JSX.Element {
   return (
-    <html lang="en" className="dark">
-      <body className="flex min-h-dvh flex-col bg-background text-foreground antialiased">
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -48,25 +48,25 @@ export function DashboardHero({
       };
 
   return (
-    <section className="dashboard-hero relative isolate overflow-hidden rounded-3xl border border-white/8 px-5 py-6 sm:px-7 sm:py-7 lg:px-9 lg:py-8">
-      <div className="relative z-10 grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <section className="dashboard-hero relative isolate overflow-hidden rounded-xl border border-white/[0.08] px-5 py-5 sm:px-6 sm:py-6 lg:px-7">
+      <div className="relative z-10 grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="max-w-3xl">
-          <div className="mb-5 flex items-center gap-2 font-mono text-[10px] font-medium tracking-[0.22em] text-brand uppercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand shadow-[0_0_12px_var(--color-brand-glow)]" />
+          <div className="mb-3 flex items-center gap-2 font-mono text-[10px] font-medium tracking-[0.18em] text-brand uppercase">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
             {t('Personal workspace')}
           </div>
-          <h1 className="max-w-2xl text-3xl leading-[1.05] font-medium tracking-[-0.04em] text-foreground sm:text-4xl lg:text-[3.2rem]">
+          <h1 className="max-w-2xl text-3xl leading-tight font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">
             {t('Your work,')}
             <span className="text-secondary"> {t('in motion.')}</span>
           </h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-secondary sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-secondary">
             {locale === 'pl'
               ? `Witaj ponownie, ${firstName}. Spokojny podgląd sygnałów, które tworzą rytm Twojej pracy.`
               : `Welcome back, ${firstName}. A quieter view of the signals that shaped your development rhythm.`}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/8 bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm">
+        <div className="rounded-lg border border-white/[0.08] bg-black/20 p-4">
           <div className="flex items-center justify-between gap-4">
             <span className="font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">
               {t('Current signal')}
@@ -81,7 +81,7 @@ export function DashboardHero({
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    isLive ? 'bg-brand shadow-[0_0_8px_var(--color-brand-glow)]' : 'bg-subtle'
+                    isLive ? 'bg-brand' : 'bg-subtle'
                   }`}
                 />
                 {isLive ? t('Coding now') : t(inactiveCopy.label)}
@@ -123,13 +123,13 @@ export function DashboardHero({
         </div>
       </div>
 
-      <div className="relative z-10 mt-8 flex flex-col gap-3 border-t border-white/[0.07] pt-5 xl:flex-row xl:items-center xl:justify-between">
+      <div className="relative z-10 mt-6 flex flex-col gap-3 border-t border-white/[0.07] pt-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <div className="font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">
-            {t('Perspective')}
+            {t('Filters')}
           </div>
-          <p className="mt-1 text-xs text-secondary">
-            {t('Shape every insight with one shared filter.')}
+          <p className="mt-1 text-[13px] leading-5 text-foreground/75">
+            {t('Choose a project and time range for the dashboard.')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">{controls}</div>

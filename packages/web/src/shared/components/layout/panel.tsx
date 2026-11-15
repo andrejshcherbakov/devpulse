@@ -7,9 +7,8 @@ const Panel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEleme
     <div
       ref={ref}
       className={cn(
-        'relative rounded-2xl border border-white/[0.07] bg-surface/90 p-5',
-        'shadow-[inset_0_1px_0_rgba(255,255,255,0.025),0_18px_50px_rgba(0,0,0,0.12)]',
-        'lg:p-6',
+        'relative rounded-xl border border-white/[0.08] bg-surface p-5',
+        'shadow-[0_1px_2px_rgba(0,0,0,0.18)]',
         className,
       )}
       {...props}
@@ -23,7 +22,7 @@ const PanelHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     <div
       ref={ref}
       className={cn(
-        'mb-4 flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between',
+        'mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}
@@ -34,7 +33,14 @@ PanelHeader.displayName = 'PanelHeader';
 
 const PanelTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-base font-medium text-foreground', className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn(
+        'text-[15px] leading-5 font-semibold tracking-[-0.01em] text-foreground',
+        className,
+      )}
+      {...props}
+    />
   ),
 );
 PanelTitle.displayName = 'PanelTitle';
@@ -43,7 +49,7 @@ const PanelDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('mt-0.5 text-sm text-secondary', className)} {...props} />
+  <p ref={ref} className={cn('mt-1 text-[13px] leading-5 text-secondary', className)} {...props} />
 ));
 PanelDescription.displayName = 'PanelDescription';
 

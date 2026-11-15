@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-8 w-full items-center justify-between gap-2 rounded-[10px] border border-gray-alpha-200 bg-background px-2.5 text-[13px] text-foreground',
+      'flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-gray-alpha-200 bg-background px-2.5 text-[13px] text-foreground',
       'transition-colors',
       'hover:border-gray-alpha-300',
       'focus:outline-none focus-visible:border-gray-alpha-300 focus-visible:ring-2 focus-visible:ring-white/15',
@@ -72,7 +72,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        'relative z-50 max-h-96 min-w-(--radix-select-trigger-width) overflow-hidden rounded-[10px] border border-border bg-surface p-1 text-foreground shadow-lg',
+        'relative z-[100] max-h-96 min-w-(--radix-select-trigger-width) overflow-hidden rounded-lg border border-border-strong bg-surface p-1 text-foreground shadow-xl',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
         'data-[side=bottom]:data-[state=open]:slide-in-from-top-1',
@@ -91,7 +91,7 @@ const SelectContent = React.forwardRef<
       <SelectPrimitive.Viewport
         className={cn(
           position === 'popper' &&
-            'h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width)',
+            'w-full min-w-(--radix-select-trigger-width) overflow-y-auto',
         )}
       >
         {children}
@@ -121,7 +121,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-pointer items-center rounded-[10px] py-1.5 pr-8 pl-2 text-[13px] text-secondary transition-colors outline-none select-none',
+      'relative flex w-full cursor-pointer items-center rounded-md py-2 pr-8 pl-2 text-[13px] text-secondary transition-colors outline-none select-none',
       'hover:bg-gray-alpha-100 hover:text-foreground',
       'focus:bg-gray-alpha-100 focus:text-foreground',
       'data-disabled:pointer-events-none data-disabled:opacity-50',

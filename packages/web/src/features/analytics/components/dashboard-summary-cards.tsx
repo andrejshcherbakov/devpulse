@@ -43,9 +43,9 @@ export function DashboardSummaryCards({
 
   return (
     <Panel className="overflow-hidden p-0 lg:p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_repeat(3,minmax(0,1fr))]">
-        <div className="relative overflow-hidden border-b border-border p-6 lg:border-r lg:border-b-0 lg:p-7">
-          <div className="pointer-events-none absolute -top-20 -left-16 h-44 w-44 rounded-full bg-brand/10 blur-3xl" />
+      <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))]">
+        <div className="relative overflow-hidden border-b border-border p-5 lg:border-r lg:border-b-0">
+          <div className="pointer-events-none absolute -top-20 -left-16 h-40 w-40 rounded-full bg-brand/[0.07] blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between gap-4">
               <p className="font-mono text-[10px] font-medium tracking-[0.18em] text-brand uppercase">
@@ -53,7 +53,7 @@ export function DashboardSummaryCards({
               </p>
               <Clock className="h-4 w-4 text-brand" strokeWidth={1.5} aria-hidden="true" />
             </div>
-            <div className="mt-5 font-mono text-4xl font-medium tracking-tighter text-foreground tabular-nums sm:text-5xl">
+            <div className="mt-4 font-mono text-3xl font-medium tracking-[-0.04em] text-foreground tabular-nums sm:text-4xl">
               {activeTime}
             </div>
             <p className="mt-2 text-xs text-subtle">
@@ -77,7 +77,7 @@ export function DashboardSummaryCards({
                   aria-hidden="true"
                 />
               </div>
-              <div className="mt-6 font-mono text-2xl font-medium tracking-[-0.03em] text-foreground tabular-nums">
+              <div className="mt-5 font-mono text-2xl font-medium tracking-[-0.03em] text-foreground tabular-nums">
                 {metric.value}
               </div>
               <p className="mt-1.5 text-xs text-subtle">{t(metric.sub)}</p>

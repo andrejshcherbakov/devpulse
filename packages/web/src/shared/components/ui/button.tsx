@@ -41,12 +41,12 @@ const buttonVariants = cva(
 
       size: {
         xs: 'h-6 rounded-md px-1.5 text-xs [&_svg:not([class*="size-"])]:size-3',
-        sm: 'h-7 rounded-lg px-2 text-xs [&_svg:not([class*="size-"])]:size-3.5',
-        default: 'h-8 rounded-[10px] px-2.5 text-[13px]',
-        lg: 'h-10 rounded-xl px-4 text-sm',
-        icon: 'h-8 w-8 rounded-[10px] p-0',
+        sm: 'h-7 rounded-md px-2 text-xs [&_svg:not([class*="size-"])]:size-3.5',
+        default: 'h-8 rounded-lg px-2.5 text-[13px]',
+        lg: 'h-10 rounded-lg px-4 text-sm',
+        icon: 'h-8 w-8 rounded-lg p-0',
         'icon-sm': 'h-7 w-7 rounded-lg p-0',
-        'icon-lg': 'h-10 w-10 rounded-xl p-0',
+        'icon-lg': 'h-10 w-10 rounded-lg p-0',
       },
     },
 

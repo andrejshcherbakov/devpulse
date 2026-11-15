@@ -1,6 +1,7 @@
 'use client';
 
-import { TerminalSquare } from 'lucide-react';
+import { formatDuration } from '@devpulse/lib';
+import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { type JSX } from 'react/jsx-runtime';
 
 import {
@@ -11,76 +12,105 @@ import {
   PanelTitle,
 } from '@/shared/components/layout/panel';
 import { useLanguage } from '@/shared/i18/language-context';
-import { cn } from '@/shared/lib/cn';
 
 import { useLanguagesBreakdown } from '../hooks';
+
+const LANGUAGE_COLORS = [
+  '#15ffab',
+  '#0ac5ef',
+  '#6d5ce8',
+  '#ffbe0c',
+  '#ff3c3c',
+  '#00cec9',
+  '#e43a8d',
+  '#fa5607',
+] as const;
 
 export function LanguagesPanel({ projectId }: { projectId?: string }): JSX.Element {
   const { data, isLoading } = useLanguagesBreakdown(projectId);
   const { t } = useLanguage();
+  const languages = data?.languages ?? [];
 
   return (
-    <Panel>
+    <Panel className="h-full">
       <PanelHeader>
-        <div>
-          <PanelTitle>{t('Languages')}</PanelTitle>
-          <PanelDescription>{t('Your technology stack')}</PanelDescription>
+        <div className="min-w-0">
+          <PanelTitle className="flex items-center gap-2">
+            <ChartNoAxesColumnIncreasing
+              className="h-4 w-4 text-brand"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            {t('Language footprint')}
+          </PanelTitle>
+          <PanelDescription>{t('Share of all tracked active time by language')}</PanelDescription>
         </div>
+        {data && data.totalActiveSeconds > 0 && (
+          <span className="shrink-0 font-mono text-xs text-secondary tabular-nums">
+            {formatDuration(data.totalActiveSeconds)}
+          </span>
+        )}
       </PanelHeader>
 
-      <PanelContent className="flex flex-col">
-        <div className="mb-2 grid grid-cols-12 gap-4 border-b border-border pb-2 text-xs font-medium tracking-wider text-subtle uppercase">
-          <div className="col-span-8">{t('Language')}</div>
-          <div className="col-span-4 text-right">{t('Active Time')}</div>
-        </div>
-
+      <PanelContent>
         {isLoading && (
-          <div className="py-8 text-center">
+          <div className="flex min-h-64 items-center justify-center">
             <span className="animate-pulse text-sm text-secondary">{t('Loading…')}</span>
           </div>
         )}
 
-        {!isLoading && (!data || data.languages.length === 0) && (
-          <div className="py-8 text-center">
-            <span className="text-sm text-secondary">{t('No data')}</span>
+        {!isLoading && languages.length === 0 && (
+          <div className="flex min-h-64 items-center justify-center text-center">
+            <span className="text-sm text-secondary">{t('No language activity yet')}</span>
           </div>
         )}
 
-        {data?.languages.map((lang, i) => (
-          <div
-            key={lang.language}
-            className={cn(
-              'relative grid grid-cols-12 items-center gap-4 py-3 text-sm transition-colors',
-              '-mx-2 rounded-lg px-2 hover:bg-gray-alpha-50',
-              i !== data.languages.length - 1 &&
-                'after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-border',
-            )}
-          >
-            <div className="col-span-8 flex min-w-0 flex-col gap-1.5">
-              <div className="flex items-center gap-2 truncate">
-                <TerminalSquare
-                  className="h-4 w-4 shrink-0 text-subtle"
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-                <span className="truncate text-sm font-medium text-foreground capitalize">
-                  {lang.language}
-                </span>
-              </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-gray-alpha-100">
+        {!isLoading && languages.length > 0 && (
+          <div className="space-y-5">
+            <div
+              className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/[0.05]"
+              aria-label={t('Language footprint')}
+            >
+              {languages.map((language, index) => (
                 <div
-                  className="h-full bg-brand transition-[width] duration-300 ease-out"
-                  style={{ width: `${lang.percentage}%` }}
+                  key={language.language}
+                  className="h-full min-w-px transition-[width] duration-500 ease-out"
+                  style={{
+                    width: `${String(language.percentage)}%`,
+                    backgroundColor: LANGUAGE_COLORS[index % LANGUAGE_COLORS.length],
+                  }}
+                  title={`${language.language}: ${String(language.percentage)}%`}
                 />
-              </div>
+              ))}
             </div>
 
-            <div className="col-span-4 flex flex-col items-end justify-center gap-0.5 text-right font-mono text-xs tabular-nums">
-              <span className="text-foreground">{lang.formattedTime}</span>
-              <span className="text-subtle">{lang.percentage}%</span>
+            <div className="divide-y divide-border">
+              {languages.map((language, index) => (
+                <div
+                  key={language.language}
+                  className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 text-xs"
+                >
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: LANGUAGE_COLORS[index % LANGUAGE_COLORS.length] }}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate font-medium text-foreground capitalize">
+                      {language.language}
+                    </span>
+                  </div>
+                  <span className="font-mono text-secondary tabular-nums">
+                    {language.formattedTime}
+                  </span>
+                  <span className="w-9 text-right font-mono text-subtle tabular-nums">
+                    {language.percentage}%
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        )}
       </PanelContent>
     </Panel>
   );
