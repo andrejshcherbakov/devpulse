@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
@@ -30,7 +31,15 @@ export function BranchesPanel({
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Branches')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Branches')}
+            <InfoPopover
+              label={t('About branches')}
+              content={t(
+                'Shows up to ten Git branches ranked by active time from sessions recorded on each branch. A branch is not necessarily one task.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>{t('Where you spent time')}</PanelDescription>
         </div>
       </PanelHeader>

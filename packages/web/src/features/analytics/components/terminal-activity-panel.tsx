@@ -12,6 +12,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
@@ -74,7 +75,15 @@ export function TerminalActivityPanel({
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Terminal activity')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Terminal activity')}
+            <InfoPopover
+              label={t('About terminal activity')}
+              content={t(
+                'Groups sanitised terminal commands and VS Code tasks by command and category. Command output is not collected, and commands without a known exit code are not counted as failures.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>{t('Commands and tasks you ran')}</PanelDescription>
         </div>
 

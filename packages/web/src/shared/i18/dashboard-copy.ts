@@ -51,19 +51,31 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'Total sessions': 'Liczba sesji',
   'Top language': 'Główny język',
   Comparison: 'Porównanie',
+  'About period comparison': 'Informacje o porównaniu okresów',
+  'Compares the selected range with the immediately preceding range of the same duration. An increase is a difference, not automatically an improvement.':
+    'Porównuje wybrany zakres z bezpośrednio poprzednim zakresem o tej samej długości. Wzrost oznacza różnicę, a nie automatycznie poprawę.',
   Activity: 'Aktywność',
   'Active coding time by day': 'Aktywny czas programowania według dni',
+  'About activity chart': 'Informacje o wykresie aktywności',
+  'Shows active session time grouped by the local date on which each session started. Sessions crossing midnight are not split between days.':
+    'Pokazuje aktywny czas sesji według lokalnej daty ich rozpoczęcia. Sesje przechodzące przez północ nie są dzielone między dni.',
   Export: 'Eksportuj',
   'Exporting…': 'Eksportowanie…',
   'Loading activity…': 'Ładowanie aktywności…',
   'No activity recorded for this period': 'Brak aktywności w tym okresie',
   'Activity heatmap': 'Mapa aktywności',
+  'About activity heatmap': 'Informacje o mapie aktywności',
+  'Shows active time by calendar day. Any day with recorded activity counts toward a streak; colour levels represent under 1, 1–2, 2–4 and at least 4 hours.':
+    'Pokazuje aktywny czas według dni kalendarzowych. Każdy dzień z aktywnością przedłuża serię, a poziomy koloru oznaczają mniej niż 1, 1–2, 2–4 oraz co najmniej 4 godziny.',
   'Daily coding intensity': 'Dzienna intensywność programowania',
   'Current streak:': 'Aktualna seria:',
   'Longest:': 'Najdłuższa:',
   Less: 'Mniej',
   More: 'Więcej',
   Branches: 'Gałęzie',
+  'About branches': 'Informacje o gałęziach',
+  'Shows up to ten Git branches ranked by active time from sessions recorded on each branch. A branch is not necessarily one task.':
+    'Pokazuje maksymalnie dziesięć gałęzi Git według aktywnego czasu sesji zapisanych na każdej gałęzi. Gałąź nie musi odpowiadać jednemu zadaniu.',
   Branch: 'Gałąź',
   'Where you spent time': 'Gdzie spędzono czas',
   'Active Time': 'Czas aktywny',
@@ -71,6 +83,9 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   Languages: 'Języki',
   'Programming languages': 'Języki programowania',
   'Language footprint': 'Udział języków',
+  'About language footprint': 'Informacje o udziale języków',
+  'Shows the share of tracked active time by the language of the active VS Code document. It measures time, not repository size or lines of code, and currently uses all tracked time.':
+    'Pokazuje udział zarejestrowanego czasu aktywnego według języka aktywnego dokumentu VS Code. Mierzy czas, a nie rozmiar repozytorium ani liczbę linii, i obecnie obejmuje cały zarejestrowany okres.',
   'Share of all tracked active time by language':
     'Udział całego zarejestrowanego czasu aktywnego według języka',
   'No language activity yet': 'Brak danych o językach',
@@ -78,12 +93,18 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'Languages and branches at a glance': 'Podsumowanie języków i gałęzi',
   'No branch activity yet': 'Brak aktywności w gałęziach',
   'Hot files': 'Najczęściej używane pliki',
+  'About hot files': 'Informacje o najczęściej używanych plikach',
+  'Ranks up to five files and folders by editor-attributed time. Time between active events is assigned to the open file and each interval is capped at five minutes.':
+    'Pokazuje maksymalnie pięć plików i folderów według czasu przypisanego przez edytor. Czas między aktywnymi zdarzeniami trafia do otwartego pliku, a pojedynczy przedział jest ograniczony do pięciu minut.',
   'Top files': 'Najważniejsze pliki',
   'Top folders': 'Najważniejsze foldery',
   'Project root': 'Katalog główny projektu',
   'Loading file activity…': 'Ładowanie aktywności plików…',
   'No file activity yet': 'Brak aktywności plików',
   'Recent sessions': 'Ostatnie sesje',
+  'About recent sessions': 'Informacje o ostatnich sesjach',
+  'Shows the five latest tracked sessions. The project filter applies, but the dashboard time-range filter does not. Focus is hidden for sessions shorter than five minutes.':
+    'Pokazuje pięć ostatnich zarejestrowanych sesji. Filtr projektu działa, ale filtr zakresu czasu panelu nie. Poziom skupienia jest ukryty dla sesji krótszych niż pięć minut.',
   'Your latest tracked activity': 'Ostatnia zarejestrowana aktywność',
   Time: 'Czas',
   Language: 'Język',
@@ -91,12 +112,18 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'Could not load sessions': 'Nie udało się załadować sesji',
   'No sessions yet': 'Brak sesji',
   'Terminal activity': 'Aktywność terminala',
+  'About terminal activity': 'Informacje o aktywności terminala',
+  'Groups sanitised terminal commands and VS Code tasks by command and category. Command output is not collected, and commands without a known exit code are not counted as failures.':
+    'Grupuje oczyszczone polecenia terminala i zadania VS Code według polecenia oraz kategorii. Wynik terminala nie jest zbierany, a polecenia bez znanego kodu zakończenia nie są liczone jako nieudane.',
   Command: 'Polecenie',
   Runs: 'Uruchomienia',
   Success: 'Powodzenie',
   All: 'Wszystkie',
   Loading: 'Ładowanie',
   'AI Worklog': 'Raport AI',
+  'About AI Worklog': 'Informacje o raporcie AI',
+  'Generates a draft from tracked projects, branches, commits, command results and sanitised paths for its own selected date range. The result can be incomplete or inaccurate and should be reviewed.':
+    'Tworzy wersję roboczą na podstawie zarejestrowanych projektów, gałęzi, commitów, wyników poleceń i oczyszczonych ścieżek dla osobno wybranego zakresu dat. Wynik może być niepełny lub niedokładny i wymaga sprawdzenia.',
   Generate: 'Generuj',
   'Start over': 'Zacznij od nowa',
   Copied: 'Skopiowano',
@@ -170,6 +197,9 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'Your work,': 'Twoja praca,',
   'in motion.': 'w ruchu.',
   'Current signal': 'Aktualny sygnał',
+  'About current signal': 'Informacje o aktualnym sygnale',
+  'Shows the latest active VS Code session known to the backend. A signal older than five minutes is treated as stale, so this is not proof that someone is typing right now.':
+    'Pokazuje ostatnią aktywną sesję VS Code znaną serwerowi. Sygnał starszy niż pięć minut jest uznawany za nieaktualny, dlatego nie oznacza to, że użytkownik właśnie pisze kod.',
   'No tracker signal yet': 'Brak sygnału z rozszerzenia',
   'Start DevPulse in VS Code to begin tracking.':
     'Uruchom DevPulse w VS Code, aby rozpocząć rejestrowanie.',
@@ -189,6 +219,15 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
     'Wybierz projekt i zakres czasu dla panelu.',
   'Confirmed idle periods are excluded automatically':
     'Potwierdzone okresy bezczynności są automatycznie pomijane',
+  'About active time': 'Informacje o czasie aktywnym',
+  'The sum of active seconds from matching sessions. Confirmed idle and paused periods are excluded, but work outside VS Code is not measured.':
+    'Suma aktywnych sekund z pasujących sesji. Potwierdzone okresy bezczynności i wstrzymania są pomijane, ale praca poza VS Code nie jest mierzona.',
+  'A weighted session average based on active versus idle time, with a limited penalty for failed test, build, lint and task runs. It is not a productivity score.':
+    'Średnia ważona sesji obliczana na podstawie czasu aktywnego i bezczynności, z ograniczoną karą za nieudane testy, buildy, lint i zadania. Nie jest to ocena produktywności.',
+  'The number of tracked work sessions that started in the selected period. A session is not the same as a task.':
+    'Liczba zarejestrowanych sesji pracy rozpoczętych w wybranym okresie. Sesja nie jest tym samym co zadanie.',
+  'The primary session language with the most active time in the selected period. It does not describe the repository size or number of files.':
+    'Główny język sesji z największym czasem aktywnym w wybranym okresie. Nie opisuje rozmiaru repozytorium ani liczby plików.',
   average: 'średnia',
   'this period': 'w tym okresie',
   'most active': 'najczęściej używany',
@@ -287,6 +326,14 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   day: 'dzień',
   days: 'dni',
   'AI-assisted activity': 'Aktywność wspomagana przez AI',
+  'More information': 'Więcej informacji',
+  'About AI-assisted activity': 'Informacje o aktywności wspomaganej przez AI',
+  'About compared sessions': 'Informacje o porównywanych sesjach',
+  'About committed changes per active hour':
+    'Informacje o zapisanych zmianach na aktywną godzinę',
+  'About comparison requirements': 'Informacje o warunkach porównania',
+  'DevPulse estimates AI use from likely AI-assisted insertions and recognised AI terminal commands. One detected interaction marks the whole session as AI-assisted. Inserted code is never sent.':
+    'DevPulse szacuje użycie AI na podstawie prawdopodobnych wstawek wspomaganych przez AI i rozpoznanych poleceń terminala. Jedna wykryta interakcja oznacza całą sesję jako wspomaganą przez AI. Wstawiony kod nie jest wysyłany.',
   'The comparison could not be loaded for the selected period.':
     'Nie udało się załadować porównania dla wybranego okresu.',
   'Waiting for data': 'Oczekiwanie na dane',
@@ -304,10 +351,26 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   'Other active time': 'Pozostały czas aktywny',
   'Detected interactions': 'Wykryte interakcje',
   'Compared sessions': 'Porównane sesje',
+  'Total active time from sessions with at least one detected AI interaction. It does not mean AI was used for the entire session.':
+    'Łączny czas aktywny sesji z co najmniej jedną wykrytą interakcją AI. Nie oznacza to, że AI było używane przez całą sesję.',
+  'Active time from sessions without a detected AI interaction. AI used outside VS Code or not recognised by DevPulse may still be included.':
+    'Czas aktywny sesji bez wykrytej interakcji AI. Może obejmować użycie AI poza VS Code lub w sposób nierozpoznany przez DevPulse.',
+  'Estimated AI signals detected by the extension, not the exact number of prompts sent to an AI model.':
+    'Szacowana liczba sygnałów AI wykrytych przez rozszerzenie, a nie dokładna liczba zapytań wysłanych do modelu.',
+  'The number of sessions with detected AI activity and sessions without it. One detected interaction marks the whole session as AI-assisted.':
+    'Liczba sesji z wykrytą aktywnością AI oraz sesji bez niej. Jedna wykryta interakcja oznacza całą sesję jako wspomaganą przez AI.',
   'Estimated throughput change': 'Szacowana zmiana tempa',
   'Estimated time saved': 'Szacowany zaoszczędzony czas',
   'Committed changes / active hour': 'Zapisane zmiany / aktywna godzina',
+  'The percentage difference between committed line changes per active hour in both groups. It does not measure code quality.':
+    'Procentowa różnica między liczbą zapisanych zmian w liniach na aktywną godzinę w obu grupach. Nie mierzy jakości kodu.',
+  'An approximation based on committed line-change rates. It is not a direct measurement of time saved by AI.':
+    'Przybliżenie oparte na tempie zmian zapisanych w commitach. Nie jest to bezpośredni pomiar czasu zaoszczędzonego dzięki AI.',
+  'Added and deleted lines from observed commits divided by active hours in each group.':
+    'Suma dodanych i usuniętych linii z wykrytych commitów podzielona przez aktywne godziny w każdej grupie.',
   'Comparison requirements': 'Warunki porównania',
+  'A comparison needs at least one hour of active time in each group and committed line changes in the group without detected AI.':
+    'Porównanie wymaga co najmniej jednej godziny aktywnego czasu w każdej grupie oraz zapisanych zmian w grupie bez wykrytego AI.',
   'DevPulse needs enough active time in both groups before comparing committed changes per hour.':
     'DevPulse potrzebuje wystarczającej ilości aktywnego czasu w obu grupach przed porównaniem zmian na godzinę.',
   'Activity without detected AI': 'Aktywność bez wykrytego AI',
@@ -341,6 +404,9 @@ export const POLISH_TRANSLATIONS: Record<string, string> = {
   Monthly: 'Miesięczna',
   'Select currency': 'Wybierz walutę',
   'Pipeline Health & Ingestion': 'Stan przesyłania i przetwarzania danych',
+  'About pipeline health': 'Informacje o stanie systemu',
+  'A lightweight status check for recent telemetry, the BullMQ queue, database query latency and AI-provider configuration. It is not full infrastructure monitoring.':
+    'Podstawowa kontrola ostatniej telemetrii, kolejki BullMQ, opóźnienia zapytań do bazy i konfiguracji dostawcy AI. Nie jest to pełny monitoring infrastruktury.',
   'Real-time status of telemetry collectors and worker queues':
     'Bieżący stan odbioru telemetrii i kolejek zadań',
   Degraded: 'Ograniczone działanie',

@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
@@ -91,7 +92,15 @@ export function HotFilesPanel({ range, projectId }: HotFilesPanelProps): JSX.Ele
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Hot files')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Hot files')}
+            <InfoPopover
+              label={t('About hot files')}
+              content={t(
+                'Ranks up to five files and folders by editor-attributed time. Time between active events is assigned to the open file and each interval is capped at five minutes.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>
             {t('The files and folders that held your active editor time')}
           </PanelDescription>

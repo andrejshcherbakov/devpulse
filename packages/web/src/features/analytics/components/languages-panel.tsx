@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 
 import { useLanguagesBreakdown } from '../hooks';
@@ -42,6 +43,12 @@ export function LanguagesPanel({ projectId }: { projectId?: string }): JSX.Eleme
               aria-hidden="true"
             />
             {t('Language footprint')}
+            <InfoPopover
+              label={t('About language footprint')}
+              content={t(
+                'Shows the share of tracked active time by the language of the active VS Code document. It measures time, not repository size or lines of code, and currently uses all tracked time.',
+              )}
+            />
           </PanelTitle>
           <PanelDescription>{t('Share of all tracked active time by language')}</PanelDescription>
         </div>
