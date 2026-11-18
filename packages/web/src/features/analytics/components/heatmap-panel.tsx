@@ -12,6 +12,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatDateLabel, parseDateInput, toDateInput } from '@/shared/lib/date';
@@ -240,7 +241,15 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
       <Panel>
         <PanelHeader>
           <div>
-            <PanelTitle>{t('Activity heatmap')}</PanelTitle>
+            <PanelTitle className="flex items-center gap-1">
+              {t('Activity heatmap')}
+              <InfoPopover
+                label={t('About activity heatmap')}
+                content={t(
+                  'Shows active time by calendar day. Any day with recorded activity counts toward a streak; colour levels represent under 1, 1–2, 2–4 and at least 4 hours.',
+                )}
+              />
+            </PanelTitle>
             <PanelDescription>{t('Daily coding intensity')}</PanelDescription>
           </div>
         </PanelHeader>
@@ -267,7 +276,15 @@ export function HeatmapPanel({ range, projectId }: HeatmapPanelProps): JSX.Eleme
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Activity heatmap')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Activity heatmap')}
+            <InfoPopover
+              label={t('About activity heatmap')}
+              content={t(
+                'Shows active time by calendar day. Any day with recorded activity counts toward a streak; colour levels represent under 1, 1–2, 2–4 and at least 4 hours.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>
             {isEmptyYear
               ? locale === 'pl'

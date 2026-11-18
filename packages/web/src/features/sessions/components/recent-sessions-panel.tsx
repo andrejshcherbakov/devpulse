@@ -15,6 +15,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 import { formatTimeRange } from '@/shared/lib/date';
@@ -63,7 +64,15 @@ export function RecentSessionsPanel({ projectId }: { projectId?: string }): JSX.
     <Panel>
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Recent sessions')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Recent sessions')}
+            <InfoPopover
+              label={t('About recent sessions')}
+              content={t(
+                'Shows the five latest tracked sessions. The project filter applies, but the dashboard time-range filter does not. Focus is hidden for sessions shorter than five minutes.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>{t('Your latest tracked activity')}</PanelDescription>
         </div>
       </PanelHeader>

@@ -14,6 +14,7 @@ import {
   PanelTitle,
 } from '@/shared/components/layout/panel';
 import { Button } from '@/shared/components/ui/button';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { formatChartAxisLabel, toDateInput } from '@/shared/lib/date';
 
@@ -57,7 +58,15 @@ export function ActivityChartPanel({
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Activity')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Activity')}
+            <InfoPopover
+              label={t('About activity chart')}
+              content={t(
+                'Shows active session time grouped by the local date on which each session started. Sessions crossing midnight are not split between days.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>{t('Active coding time by day')}</PanelDescription>
         </div>
         <Button

@@ -7,6 +7,7 @@ import { type JSX } from 'react/jsx-runtime';
 import { Panel } from '@/shared/components/layout/panel';
 import { Button } from '@/shared/components/ui/button';
 import { DateRangePicker } from '@/shared/components/ui/date-range-picker';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import {
   Select,
   SelectContent,
@@ -75,7 +76,15 @@ export function AiWorklogCard(): JSX.Element {
               <Sparkles className="h-4.5 w-4.5 text-brand" strokeWidth={1.5} aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">{t('AI Worklog')}</h3>
+              <h3 className="flex items-center gap-1 text-sm font-medium text-foreground">
+                {t('AI Worklog')}
+                <InfoPopover
+                  label={t('About AI Worklog')}
+                  content={t(
+                    'Generates a draft from tracked projects, branches, commits, command results and sanitised paths for its own selected date range. The result can be incomplete or inaccurate and should be reviewed.',
+                  )}
+                />
+              </h3>
               <p className="mt-0.5 text-xs text-subtle">
                 {locale === 'pl'
                   ? `Podsumowanie dzień po dniu dla maksymalnie ${String(MAX_RANGE_DAYS)} dni`

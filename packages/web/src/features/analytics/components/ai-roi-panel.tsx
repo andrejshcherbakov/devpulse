@@ -5,6 +5,7 @@ import { Bot, Clock, Gauge, Sparkles, TrendingUp } from 'lucide-react';
 import { type JSX } from 'react/jsx-runtime';
 
 import { Panel } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 
 import { type DateRange, useAiRoiMetrics } from '../hooks';
@@ -89,7 +90,15 @@ export function AiRoiPanel({
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-medium text-foreground">{t('AI-assisted activity')}</h3>
+              <h3 className="flex items-center gap-1 text-sm font-medium text-foreground">
+                {t('AI-assisted activity')}
+                <InfoPopover
+                  label={t('About AI-assisted activity')}
+                  content={t(
+                    'DevPulse estimates AI use from likely AI-assisted insertions and recognised AI terminal commands. One detected interaction marks the whole session as AI-assisted. Inserted code is never sent.',
+                  )}
+                />
+              </h3>
               {hasAiActivity && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-brand/30 bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand">
                   {sample?.comparisonReady ? (
@@ -125,22 +134,37 @@ export function AiRoiPanel({
                 icon={<Sparkles className="h-3.5 w-3.5" />}
                 label={t('AI-assisted time')}
                 value={sample ? formatDuration(sample.aiActiveSeconds) : '—'}
+                help={t(
+                  'Total active time from sessions with at least one detected AI interaction. It does not mean AI was used for the entire session.',
+                )}
                 accent
               />
               <Metric
                 icon={<Clock className="h-3.5 w-3.5" />}
                 label={t('Other active time')}
                 value={sample ? formatDuration(sample.manualActiveSeconds) : '—'}
+                help={t(
+                  'Active time from sessions without a detected AI interaction. AI used outside VS Code or not recognised by DevPulse may still be included.',
+                )}
               />
               <Metric
                 icon={<Bot className="h-3.5 w-3.5" />}
                 label={t('Detected interactions')}
                 value={String(roi.totalAiInteractions)}
+                help={t(
+                  'Estimated AI signals detected by the extension, not the exact number of prompts sent to an AI model.',
+                )}
               />
               <div>
                 <p className="flex items-center gap-1.5 text-xs font-medium text-subtle">
                   <Gauge className="h-3.5 w-3.5" />
                   {t('Compared sessions')}
+                  <InfoPopover
+                    label={t('About compared sessions')}
+                    content={t(
+                      'The number of sessions with detected AI activity and sessions without it. One detected interaction marks the whole session as AI-assisted.',
+                    )}
+                  />
                 </p>
                 <p className="mt-1 font-mono text-xl font-semibold tracking-tight text-foreground">
                   {roi.aiSessionsCount}
@@ -157,14 +181,28 @@ export function AiRoiPanel({
                 <ComparisonMetric
                   label={t('Estimated throughput change')}
                   value={`${speedupPrefix}${String(roi.speedupPercentage)}%`}
+                  help={t(
+                    'The percentage difference between committed line changes per active hour in both groups. It does not measure code quality.',
+                  )}
                   accent={roi.speedupPercentage > 0}
                 />
                 <ComparisonMetric
                   label={t('Estimated time saved')}
                   value={`~${String(roi.estimatedHoursSaved)}h`}
+                  help={t(
+                    'An approximation based on committed line-change rates. It is not a direct measurement of time saved by AI.',
+                  )}
                 />
                 <div>
-                  <p className="text-xs font-medium text-subtle">{t('Committed changes / active hour')}</p>
+                  <p className="flex items-center gap-1 text-xs font-medium text-subtle">
+                    {t('Committed changes / active hour')}
+                    <InfoPopover
+                      label={t('About committed changes per active hour')}
+                      content={t(
+                        'Added and deleted lines from observed commits divided by active hours in each group.',
+                      )}
+                    />
+                  </p>
                   <p className="mt-1 font-mono text-lg font-semibold text-foreground">
                     {roi.aiVelocityLinesPerHour}
                     <span className="text-xs font-normal text-subtle"> AI</span>
@@ -177,7 +215,15 @@ export function AiRoiPanel({
             ) : sample ? (
               <div className="grid gap-4 rounded-xl border border-border/70 bg-background/25 p-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <p className="text-xs font-medium text-foreground">{t('Comparison requirements')}</p>
+                  <p className="flex items-center gap-1 text-xs font-medium text-foreground">
+                    {t('Comparison requirements')}
+                    <InfoPopover
+                      label={t('About comparison requirements')}
+                      content={t(
+                        'A comparison needs at least one hour of active time in each group and committed line changes in the group without detected AI.',
+                      )}
+                    />
+                  </p>
                   <p className="mt-1 text-xs text-subtle">
                     {t('DevPulse needs enough active time in both groups before comparing committed changes per hour.')}
                   </p>
@@ -186,11 +232,17 @@ export function AiRoiPanel({
                   label={t('AI-assisted activity')}
                   progress={aiProgress}
                   remainingSeconds={aiRemainingSeconds}
+                  help={t(
+                    'Total active time from sessions with at least one detected AI interaction. It does not mean AI was used for the entire session.',
+                  )}
                 />
                 <SampleProgress
                   label={t('Activity without detected AI')}
                   progress={otherProgress}
                   remainingSeconds={otherRemainingSeconds}
+                  help={t(
+                    'Active time from sessions without a detected AI interaction. AI used outside VS Code or not recognised by DevPulse may still be included.',
+                  )}
                 />
                 {aiRemainingSeconds === 0 && otherRemainingSeconds === 0 && (
                   <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-subtle sm:col-span-2">
@@ -218,18 +270,23 @@ function Metric({
   icon,
   label,
   value,
+  help,
   accent = false,
 }: {
   icon: JSX.Element;
   label: string;
   value: string;
+  help: string;
   accent?: boolean;
 }): JSX.Element {
+  const { t } = useLanguage();
+
   return (
     <div>
       <p className="flex items-center gap-1.5 text-xs font-medium text-subtle">
         {icon}
         {label}
+        <InfoPopover label={`${t('More information')}: ${label}`} content={help} />
       </p>
       <p
         className={`mt-1 font-mono text-xl font-semibold tracking-tight ${accent ? 'text-brand' : 'text-foreground'}`}
@@ -243,15 +300,22 @@ function Metric({
 function ComparisonMetric({
   label,
   value,
+  help,
   accent = false,
 }: {
   label: string;
   value: string;
+  help: string;
   accent?: boolean;
 }): JSX.Element {
+  const { t } = useLanguage();
+
   return (
     <div>
-      <p className="text-xs font-medium text-subtle">{label}</p>
+      <p className="flex items-center gap-1 text-xs font-medium text-subtle">
+        {label}
+        <InfoPopover label={`${t('More information')}: ${label}`} content={help} />
+      </p>
       <p
         className={`mt-1 font-mono text-lg font-semibold ${accent ? 'text-brand' : 'text-foreground'}`}
       >
@@ -265,17 +329,22 @@ function SampleProgress({
   label,
   progress,
   remainingSeconds,
+  help,
 }: {
   label: string;
   progress: number;
   remainingSeconds: number;
+  help: string;
 }): JSX.Element {
   const { t } = useLanguage();
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3 text-xs">
-        <span className="font-medium text-foreground">{label}</span>
+        <span className="flex items-center gap-1 font-medium text-foreground">
+          {label}
+          <InfoPopover label={`${t('More information')}: ${label}`} content={help} />
+        </span>
         <span className="text-subtle">
           {remainingSeconds > 0
             ? `${formatDuration(remainingSeconds)} ${t('remaining')}`

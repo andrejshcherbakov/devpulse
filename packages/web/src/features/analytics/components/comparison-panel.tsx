@@ -11,6 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
@@ -49,7 +50,15 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
       <Panel className="h-full">
         <PanelHeader>
           <div>
-            <PanelTitle>{t('Comparison')}</PanelTitle>
+            <PanelTitle className="flex items-center gap-1">
+              {t('Comparison')}
+              <InfoPopover
+                label={t('About period comparison')}
+                content={t(
+                  'Compares the selected range with the immediately preceding range of the same duration. An increase is a difference, not automatically an improvement.',
+                )}
+              />
+            </PanelTitle>
             <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
           </div>
         </PanelHeader>
@@ -70,7 +79,15 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
       <Panel className="flex h-full flex-col">
         <PanelHeader>
           <div>
-            <PanelTitle>{t('Comparison')}</PanelTitle>
+            <PanelTitle className="flex items-center gap-1">
+              {t('Comparison')}
+              <InfoPopover
+                label={t('About period comparison')}
+                content={t(
+                  'Compares the selected range with the immediately preceding range of the same duration. An increase is a difference, not automatically an improvement.',
+                )}
+              />
+            </PanelTitle>
             <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
           </div>
         </PanelHeader>
@@ -117,7 +134,15 @@ export function ComparisonPanel({ range, projectId }: ComparisonPanelProps): JSX
     <Panel className="h-full">
       <PanelHeader>
         <div>
-          <PanelTitle>{t('Comparison')}</PanelTitle>
+          <PanelTitle className="flex items-center gap-1">
+            {t('Comparison')}
+            <InfoPopover
+              label={t('About period comparison')}
+              content={t(
+                'Compares the selected range with the immediately preceding range of the same duration. An increase is a difference, not automatically an improvement.',
+              )}
+            />
+          </PanelTitle>
           <PanelDescription>{t('vs previous period of the same length')}</PanelDescription>
         </div>
       </PanelHeader>

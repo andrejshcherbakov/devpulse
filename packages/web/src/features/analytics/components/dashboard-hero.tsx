@@ -5,6 +5,7 @@ import { Activity, Code2, Radio } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { type JSX } from 'react/jsx-runtime';
 
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { type LiveStatus } from '@/shared/types';
 
@@ -68,8 +69,14 @@ export function DashboardHero({
 
         <div className="rounded-lg border border-white/[0.08] bg-black/20 p-4">
           <div className="flex items-center justify-between gap-4">
-            <span className="font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">
+            <span className="flex items-center gap-1 font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">
               {t('Current signal')}
+              <InfoPopover
+                label={t('About current signal')}
+                content={t(
+                  'Shows the latest active VS Code session known to the backend. A signal older than five minutes is treated as stale, so this is not proof that someone is typing right now.',
+                )}
+              />
             </span>
             <div className="text-right">
               <span

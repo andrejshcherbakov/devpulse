@@ -5,6 +5,7 @@ import { Activity, AlertCircle, CheckCircle2, Cpu, Database, Radio } from 'lucid
 import { type JSX } from 'react/jsx-runtime';
 
 import { Panel } from '@/shared/components/layout/panel';
+import { InfoPopover } from '@/shared/components/ui/info-popover';
 import { useLanguage } from '@/shared/i18/language-context';
 import { cn } from '@/shared/lib/cn';
 
@@ -103,7 +104,15 @@ export function StatusMonitoringPanel(): JSX.Element | null {
               <Activity className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-foreground">{t('Pipeline Health & Ingestion')}</h3>
+              <h3 className="flex items-center gap-1 text-sm font-medium text-foreground">
+                {t('Pipeline Health & Ingestion')}
+                <InfoPopover
+                  label={t('About pipeline health')}
+                  content={t(
+                    'A lightweight status check for recent telemetry, the BullMQ queue, database query latency and AI-provider configuration. It is not full infrastructure monitoring.',
+                  )}
+                />
+              </h3>
               <p className="text-xs text-subtle">
                 {t('Real-time status of telemetry collectors and worker queues')}
               </p>
