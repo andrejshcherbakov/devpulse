@@ -12,6 +12,7 @@ const FORMAT_RULES: Record<WorklogFormat, string> = {
 
 const LANGUAGE_NAMES: Record<WorklogLanguage, string> = {
   en: 'English',
+  pl: 'Polish',
 };
 
 export function buildSystemPrompt(format: WorklogFormat, language: WorklogLanguage): string {

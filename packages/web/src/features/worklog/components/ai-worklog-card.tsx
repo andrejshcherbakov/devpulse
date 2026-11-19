@@ -53,7 +53,7 @@ export function AiWorklogCard(): JSX.Element {
     : undefined;
 
   const handleGenerate = () => {
-    void start({ startDate, endDate, format });
+    void start({ startDate, endDate, format, language: locale });
   };
 
   const handleCopy = () => {
@@ -233,7 +233,7 @@ export function AiWorklogCard(): JSX.Element {
         plan={plan}
         days={days}
         phase={phase}
-        onRegenerateDay={(date) => void regenerateDay(date)}
+        onRegenerateDay={(date) => void regenerateDay(date, locale)}
         onCancel={cancel}
       />
     </>
