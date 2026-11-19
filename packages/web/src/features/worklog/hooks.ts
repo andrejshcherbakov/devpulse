@@ -2,7 +2,13 @@ import { useCallback, useRef, useState } from 'react';
 
 import { worklogService } from '@/shared/api/services';
 import { getErrorMessage } from '@/shared/lib/error';
-import type { WorklogDayResult, WorklogFormat, WorklogPlan, WorklogPlanDay } from '@/shared/types';
+import type {
+  WorklogDayResult,
+  WorklogFormat,
+  WorklogLanguage,
+  WorklogPlan,
+  WorklogPlanDay,
+} from '@/shared/types';
 
 export type DayStatus = 'pending' | 'loading' | 'done' | 'failed';
 export type RunPhase = 'idle' | 'planning' | 'running' | 'finished';
@@ -18,6 +24,7 @@ export interface WorklogRunOptions {
   startDate: string;
   endDate: string;
   format: WorklogFormat;
+  language: WorklogLanguage;
 }
 
 export interface WorklogRunResult {
@@ -28,7 +35,7 @@ export interface WorklogRunResult {
   start: (options: WorklogRunOptions) => Promise<void>;
   resume: () => void;
   cancel: () => void;
-  regenerateDay: (date: string) => Promise<void>;
+  regenerateDay: (date: string, language: WorklogLanguage) => Promise<void>;
 }
 
 export function useWorklogRun(): WorklogRunResult {
@@ -47,7 +54,7 @@ export function useWorklogRun(): WorklogRunResult {
   }, []);
 
   const generateDay = useCallback(
-    async (date: string, force: boolean): Promise<boolean> => {
+    async (date: string, force: boolean, language?: WorklogLanguage): Promise<boolean> => {
       const options = optionsRef.current;
 
       if (!options) return false;
@@ -58,7 +65,7 @@ export function useWorklogRun(): WorklogRunResult {
         const result = await worklogService.generateDay({
           date,
           format: options.format,
-          language: 'en',
+          language: language ?? options.language,
           force,
         });
 
@@ -132,8 +139,8 @@ export function useWorklogRun(): WorklogRunResult {
   }, []);
 
   const regenerateDay = useCallback(
-    async (date: string) => {
-      await generateDay(date, true);
+    async (date: string, language: WorklogLanguage) => {
+      await generateDay(date, true, language);
     },
     [generateDay],
   );

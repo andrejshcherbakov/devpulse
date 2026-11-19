@@ -1,7 +1,7 @@
 export const WORKLOG_FORMATS = ['daily-log', 'standup', 'client-report'] as const;
 export type WorklogFormat = (typeof WORKLOG_FORMATS)[number];
 
-export const WORKLOG_LANGUAGES = ['en'] as const;
+export const WORKLOG_LANGUAGES = ['en', 'pl'] as const;
 export type WorklogLanguage = (typeof WORKLOG_LANGUAGES)[number];
 
 export const DATE_FORMAT = 'yyyy-MM-dd';

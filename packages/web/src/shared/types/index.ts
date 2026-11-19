@@ -172,7 +172,7 @@ export interface DailyWorklogResponse {
 }
 
 export type WorklogFormat = 'daily-log' | 'standup' | 'client-report';
-export type WorklogLanguage = 'en';
+export type WorklogLanguage = 'en' | 'pl';
 export type LlmProvider = 'openrouter' | 'openai' | 'custom';
 export type LlmTier = 'free' | 'paid';
 

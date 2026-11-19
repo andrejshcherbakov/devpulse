@@ -49,6 +49,10 @@ const FACTS: DayFacts = {
 };
 
 describe('worklog prompt', () => {
+  it('requests Polish output for Polish worklogs', () => {
+    expect(buildSystemPrompt('daily-log', 'pl')).toContain('Language: Polish.');
+  });
+
   it('explains how the model may use hot files without inferring work', () => {
     const prompt = buildSystemPrompt('daily-log', 'en');
 
