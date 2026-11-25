@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Repository } from 'typeorm';
@@ -7,9 +7,12 @@ import { TypeId } from '@devpulse/lib';
 
 import { WorkSession } from '../../telemetry/entities/work-session.entity';
 import { GetAnalyticsRangeRequestDto } from '../dto/request/get-analytics-range-request.dto';
-import { CsvExportFormatterService } from '../formatters/csv-export-formatter.service';
 import { ExportedFile, SessionExportRaw } from '../interfaces/analytics-export.interfaces';
-import { ExportRow } from '../interfaces/export-formatter.interface';
+import {
+  EXPORT_FORMATTER,
+  type ExportFormatter,
+  type ExportRow,
+} from '../interfaces/export-formatter.interface';
 
 @Injectable()
 export class AnalyticsExportService {
@@ -18,7 +21,8 @@ export class AnalyticsExportService {
   constructor(
     @InjectRepository(WorkSession)
     private readonly sessionRepo: Repository<WorkSession>,
-    private readonly csvFormatter: CsvExportFormatterService,
+    @Inject(EXPORT_FORMATTER)
+    private readonly formatter: ExportFormatter,
   ) {}
 
   public async exportSessions(
@@ -29,11 +33,11 @@ export class AnalyticsExportService {
     this.logger.log(`Exporting sessions for user: ${userId}`);
 
     const rows = await this.fetchRows(userId, timezone, query);
-    const content = this.csvFormatter.serialize(rows);
+    const content = this.formatter.serialize(rows);
 
     return {
       content,
-      contentType: this.csvFormatter.contentType,
+      contentType: this.formatter.contentType,
       filename: this.buildFilename(query),
     };
   }
@@ -99,6 +103,6 @@ export class AnalyticsExportService {
   private buildFilename(query: GetAnalyticsRangeRequestDto): string {
     const start = query.startDate?.split('T')[0] ?? 'all';
     const end = query.endDate?.split('T')[0] ?? 'now';
-    return `devpulse-sessions_${start}_${end}.${this.csvFormatter.fileExtension}`;
+    return `devpulse-sessions_${start}_${end}.${this.formatter.fileExtension}`;
   }
 }

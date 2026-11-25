@@ -14,3 +14,5 @@ export interface ExportFormatter {
   readonly fileExtension: string;
   serialize(rows: Array<ExportRow>): string;
 }
+
+export const EXPORT_FORMATTER = Symbol('EXPORT_FORMATTER');

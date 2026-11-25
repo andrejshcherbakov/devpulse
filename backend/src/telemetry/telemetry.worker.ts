@@ -3,7 +3,7 @@ import { Job, Worker } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { DataSource, EntityManager, IsNull, LessThan, Repository } from 'typeorm';
 
-import { stripUrlCredentials, typeIdGenerator, type WorkingTreeChange } from '@devpulse/lib';
+import { stripUrlCredentials, typeIdGenerator } from '@devpulse/lib';
 
 import { Project } from '../projects/entities/project.entity';
 import { AnalyticsUpdatesService } from '../realtime/analytics-updates.service';
@@ -16,61 +16,20 @@ import { TelemetryEventItemDto } from './dto/request/ingest-telemetry-batch-requ
 import { TelemetryEvent } from './entities/telemetry-event.entity';
 import { WorkSession, WorkSessionStatus } from './entities/work-session.entity';
 import { TelemetryJobData } from './queue/telemetry.queue';
-import { classifyCommand } from './utils/command-classifier';
-import {
-  addFileActivity,
-  getFileActivityDeltaSeconds,
-  normalizeWorkspaceFilePath,
-} from './utils/file-activity';
-import { calculateSessionTime, resolveIdleStartedAt } from './utils/session-time';
+import { WorkSessionAccumulator } from './services/work-session-accumulator.service';
+import { normalizeWorkspaceFilePath } from './utils/file-activity';
+import { resolveIdleStartedAt } from './utils/session-time';
 
 const QUEUE_NAME = 'telemetry-ingestion';
-const MAX_IDLE_CREDIT_MS = 30 * 60 * 1000;
 const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
 const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const MAX_LANGUAGE_DELTA_SEC = 300;
-const MAX_COMMANDS = 500;
-const MAX_COMMITS = 100;
-const MAX_WORKING_TREE_FILES = 100;
-const MAX_SYMBOL_FILES = 100;
-const MAX_SYMBOLS_PER_FILE = 20;
-const MAX_SYMBOL_NAME_LENGTH = 160;
-const FOCUS_FAILURE_MAX_PENALTY = 20;
 const UNKNOWN_PROJECT_NAME = 'Unknown';
 const RAW_EVENTS_CHUNK_SIZE = 100;
-
-const NOISY_LANGUAGES: ReadonlySet<string> = new Set(['plaintext', 'log', 'jsonc']);
-const FOCUS_RELEVANT_KINDS: ReadonlySet<string> = new Set(['test', 'build', 'lint', 'task']);
-
-type TerminalCommandRecord = WorkSession['terminalCommands'][number];
 
 interface TimedEvent {
   event: TelemetryEventItemDto;
   branch: string;
   time: Date;
-}
-
-function computeFocusScore(
-  activeSeconds: number,
-  idleSeconds: number,
-  commands: ReadonlyArray<{ kind: string; exitCode: number | null }>,
-): number {
-  const total = activeSeconds + idleSeconds;
-  const baseFocus = total > 0 ? (activeSeconds / total) * 100 : 0;
-
-  const meaningful = commands.filter((command) => FOCUS_RELEVANT_KINDS.has(command.kind));
-
-  if (meaningful.length === 0) {
-    return baseFocus;
-  }
-
-  const failed = meaningful.filter(
-    (command) => command.exitCode !== null && command.exitCode !== 0,
-  ).length;
-
-  const penalty = (failed / meaningful.length) * FOCUS_FAILURE_MAX_PENALTY;
-
-  return Math.max(0, Math.min(100, baseFocus - penalty));
 }
 
 function resolveEventTime(raw: string | undefined, nowMs: number): Date | null {
@@ -128,6 +87,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     private readonly userRepository: UserRepository,
     private readonly dataSource: DataSource,
     private readonly analyticsUpdates: AnalyticsUpdatesService,
+    private readonly sessionAccumulator: WorkSessionAccumulator,
   ) {}
 
   public onModuleInit(): void {
@@ -243,15 +203,14 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
       let appliedIdleSeconds = 0;
 
       if (active) {
-        const idleCreditSeconds = this.getIdleCreditSeconds(event);
-        const activeUntil = this.resolveActiveUntil(time, idleCreditSeconds);
+        const idleCreditSeconds = this.sessionAccumulator.getIdleCreditSeconds(event);
+        const activeUntil = this.sessionAccumulator.resolveActiveUntil(time, idleCreditSeconds);
 
-        this.accumulateLanguage(active, activeUntil);
-        this.accumulateFileActivity(active, activeUntil);
+        this.sessionAccumulator.accumulateActivity(active, activeUntil);
         this.extendSession(active, time);
-        appliedIdleSeconds = this.addIdleCredit(active, idleCreditSeconds);
+        appliedIdleSeconds = this.sessionAccumulator.addIdleCredit(active, idleCreditSeconds);
         active.status = WorkSessionStatus.CLOSED;
-        this.recomputeDerived(active, user);
+        this.sessionAccumulator.recomputeDerived(active, user);
         await sessionRepo.save(active);
       }
 
@@ -264,34 +223,33 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     const gapMs = active?.endedAt
       ? time.getTime() - active.endedAt.getTime()
       : Number.POSITIVE_INFINITY;
-    const requestedIdleSeconds = this.getIdleCreditSeconds(event);
+    const requestedIdleSeconds = this.sessionAccumulator.getIdleCreditSeconds(event);
 
     let session: WorkSession;
     let appliedIdleSeconds = 0;
 
     if (active !== null && gapMs <= SESSION_GAP_MS) {
       if (event.type !== 'idle_end') {
-        this.accumulateLanguage(active, time);
-        this.accumulateFileActivity(active, time);
+        this.sessionAccumulator.accumulateActivity(active, time);
       }
 
-      this.applyEventToSession(active, event, time);
+      this.sessionAccumulator.applyEvent(active, event, time);
       if (event.type === 'idle_start') {
         const idleStartedAt = resolveActivityChangedAt(event, time);
         active.endedAt = resolveIdleStartedAt(active.startedAt, idleStartedAt);
       } else {
         this.extendSession(active, time);
       }
-      appliedIdleSeconds = this.addIdleCredit(active, requestedIdleSeconds);
-      this.recomputeDerived(active, user);
+      appliedIdleSeconds = this.sessionAccumulator.addIdleCredit(active, requestedIdleSeconds);
+      this.sessionAccumulator.recomputeDerived(active, user);
 
       session = await sessionRepo.save(active);
     } else {
       await this.closeStaleSessions(sessionRepo, user, time);
 
       const created = this.createSession(sessionRepo, user, project, branch, time);
-      this.applyEventToSession(created, event, time);
-      this.recomputeDerived(created, user);
+      this.sessionAccumulator.applyEvent(created, event, time);
+      this.sessionAccumulator.recomputeDerived(created, user);
 
       session = await sessionRepo.save(created);
     }
@@ -380,7 +338,7 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
 
     for (const session of stale) {
       session.status = WorkSessionStatus.CLOSED;
-      this.recomputeDerived(session, user);
+      this.sessionAccumulator.recomputeDerived(session, user);
     }
 
     await sessionRepo.save(stale);
@@ -431,281 +389,10 @@ export class TelemetryWorker implements OnModuleInit, OnModuleDestroy {
     return project;
   }
 
-  private applyEventToSession(
-    session: WorkSession,
-    event: TelemetryEventItemDto,
-    time: Date,
-  ): void {
-    this.applyEventLanguage(session, event);
-    this.applyEventFile(session, event);
-    this.applyCommandTracking(session, event, time);
-    this.applyAiInteractionTracking(session, event);
-    this.applyCommitTracking(session, event, time);
-    this.applyWorkingTreeTracking(session, event);
-    this.applySymbolTracking(session, event);
-
-    session.machineId ??= event.machineId ?? null;
-  }
-
   private extendSession(session: WorkSession, time: Date): void {
     if (session.endedAt === null || time.getTime() > session.endedAt.getTime()) {
       session.endedAt = time;
     }
-  }
-
-  private accumulateLanguage(session: WorkSession, time: Date): void {
-    const lastAt = session.endedAt?.getTime() ?? session.startedAt.getTime();
-    const deltaSec = Math.round((time.getTime() - lastAt) / 1000);
-
-    if (deltaSec <= 0 || !session.currentLanguage) {
-      return;
-    }
-
-    const capped = Math.min(deltaSec, MAX_LANGUAGE_DELTA_SEC);
-    const buckets: Record<string, number> = { ...session.languageSeconds };
-    buckets[session.currentLanguage] = (buckets[session.currentLanguage] ?? 0) + capped;
-    session.languageSeconds = buckets;
-  }
-
-  private applyEventLanguage(session: WorkSession, event: TelemetryEventItemDto): void {
-    if (!event.language) {
-      return;
-    }
-
-    const language = event.language.toLowerCase();
-
-    if (!NOISY_LANGUAGES.has(language)) {
-      session.currentLanguage = language;
-    }
-  }
-
-  private accumulateFileActivity(session: WorkSession, time: Date): void {
-    const lastAt = session.endedAt ?? session.startedAt;
-    const deltaSec = getFileActivityDeltaSeconds(lastAt, time);
-
-    if (deltaSec <= 0 || !session.currentFilePath) {
-      return;
-    }
-
-    session.fileSeconds = addFileActivity(session.fileSeconds, session.currentFilePath, deltaSec);
-  }
-
-  private applyEventFile(session: WorkSession, event: TelemetryEventItemDto): void {
-    if (event.filePath === undefined) {
-      return;
-    }
-
-    session.currentFilePath = normalizeWorkspaceFilePath(event.filePath);
-  }
-
-  private applyCommandTracking(
-    session: WorkSession,
-    event: TelemetryEventItemDto,
-    time: Date,
-  ): void {
-    const record = this.toCommandRecord(event, time);
-
-    if (record === null) {
-      return;
-    }
-
-    session.terminalCommands = [...session.terminalCommands, record].slice(-MAX_COMMANDS);
-    session.commandsRun += 1;
-
-    if (record.exitCode !== null && record.exitCode !== 0) {
-      session.failedCommands += 1;
-    }
-
-    if (record.kind === 'ai') {
-      session.aiInteractionsCount += 1;
-      session.aiAssisted = true;
-    }
-  }
-
-  private toCommandRecord(event: TelemetryEventItemDto, time: Date): TerminalCommandRecord | null {
-    if (event.type === 'terminal_command' && event.command) {
-      return {
-        command: event.command,
-        cwd: event.commandCwd ?? null,
-        exitCode: event.exitCode ?? null,
-        durationMs: event.durationMs ?? 0,
-        kind: classifyCommand(event.command),
-        timestamp: time.toISOString(),
-      };
-    }
-
-    if (event.type === 'task_run' && event.taskName) {
-      return {
-        command: event.taskName,
-        cwd: null,
-        exitCode: event.exitCode ?? null,
-        durationMs: event.durationMs ?? 0,
-        kind: 'task',
-        timestamp: time.toISOString(),
-      };
-    }
-
-    return null;
-  }
-
-  private applyAiInteractionTracking(session: WorkSession, event: TelemetryEventItemDto): void {
-    if (event.type !== 'ai_interaction') {
-      return;
-    }
-
-    session.aiInteractionsCount += 1;
-    session.aiAssisted = true;
-  }
-
-  private applyCommitTracking(
-    session: WorkSession,
-    event: TelemetryEventItemDto,
-    time: Date,
-  ): void {
-    if (event.type !== 'git_commit' || !event.commitHash) {
-      return;
-    }
-
-    if (session.commits.some((commit) => commit.hash === event.commitHash)) {
-      return;
-    }
-
-    session.commits = [
-      ...session.commits,
-      {
-        hash: event.commitHash,
-        message: event.commitMessage ?? '',
-        filesChanged: event.filesChanged ?? 0,
-        insertions: event.insertions ?? 0,
-        deletions: event.deletions ?? 0,
-        filesList: event.filesList ?? [],
-        timestamp: time.toISOString(),
-      },
-    ].slice(-MAX_COMMITS);
-
-    session.commitsCount = session.commits.length;
-  }
-
-  private applyWorkingTreeTracking(session: WorkSession, event: TelemetryEventItemDto): void {
-    if (event.type !== 'working_tree' || event.workingTreeChanges === undefined) {
-      return;
-    }
-
-    const changes: Array<WorkingTreeChange> = [];
-    const seen = new Set<string>();
-
-    for (const change of event.workingTreeChanges) {
-      const path = normalizeWorkspaceFilePath(change.path);
-      if (path === null || seen.has(path)) continue;
-
-      seen.add(path);
-      changes.push({ path, status: change.status });
-
-      if (changes.length >= MAX_WORKING_TREE_FILES) break;
-    }
-
-    session.workingTreeChanges = changes;
-  }
-
-  private applySymbolTracking(session: WorkSession, event: TelemetryEventItemDto): void {
-    if (event.type !== 'symbol_touch' || event.filePath === undefined || !event.symbols) {
-      return;
-    }
-
-    const path = normalizeWorkspaceFilePath(event.filePath);
-    if (path === null) return;
-
-    const current = session.touchedSymbols;
-    if (!(path in current) && Object.keys(current).length >= MAX_SYMBOL_FILES) return;
-
-    const symbols = new Set(current[path] ?? []);
-
-    for (const rawSymbol of event.symbols) {
-      const symbol = rawSymbol
-        .replaceAll(/[\r\n\t]+/g, ' ')
-        .trim()
-        .slice(0, MAX_SYMBOL_NAME_LENGTH);
-      if (symbol !== '') symbols.add(symbol);
-      if (symbols.size >= MAX_SYMBOLS_PER_FILE) break;
-    }
-
-    session.touchedSymbols = { ...current, [path]: [...symbols] };
-  }
-
-  private topLanguage(buckets: Record<string, number> | null | undefined): string | null {
-    if (!buckets) {
-      return null;
-    }
-
-    let best: string | null = null;
-    let bestSec = 0;
-
-    for (const [language, seconds] of Object.entries(buckets)) {
-      if (seconds > bestSec) {
-        best = language;
-        bestSec = seconds;
-      }
-    }
-
-    return best;
-  }
-
-  private getIdleCreditSeconds(event: TelemetryEventItemDto): number {
-    if ((event.type !== 'idle_end' && event.type !== 'session_end') || !event.durationMs) {
-      return 0;
-    }
-
-    const rawSec = Math.round(event.durationMs / 1000);
-
-    if (event.type === 'session_end') {
-      return rawSec;
-    }
-
-    const capSec = Math.round(MAX_IDLE_CREDIT_MS / 1000);
-
-    return Math.min(rawSec, capSec);
-  }
-
-  private resolveActiveUntil(eventTime: Date, idleCreditSeconds: number): Date {
-    if (idleCreditSeconds <= 0) {
-      return eventTime;
-    }
-
-    return new Date(eventTime.getTime() - idleCreditSeconds * 1000);
-  }
-
-  private addIdleCredit(session: WorkSession, requestedIdleSeconds: number): number {
-    if (requestedIdleSeconds <= 0) {
-      return 0;
-    }
-
-    const endedAt = session.endedAt ?? session.startedAt;
-    const before = calculateSessionTime(session.startedAt, endedAt, session.idleSeconds);
-    const after = calculateSessionTime(
-      session.startedAt,
-      endedAt,
-      before.idleSeconds + requestedIdleSeconds,
-    );
-
-    session.idleSeconds = after.idleSeconds;
-    return after.idleSeconds - before.idleSeconds;
-  }
-
-  private recomputeDerived(session: WorkSession, user: User): void {
-    const endedAt = session.endedAt ?? session.startedAt;
-    const time = calculateSessionTime(session.startedAt, endedAt, session.idleSeconds);
-
-    session.activeSeconds = time.activeSeconds;
-    session.idleSeconds = time.idleSeconds;
-
-    session.focusScore = computeFocusScore(
-      session.activeSeconds,
-      session.idleSeconds,
-      session.terminalCommands,
-    );
-
-    session.earnedMoney = (session.activeSeconds / 3600) * user.hourlyRate;
-    session.primaryLanguage = this.topLanguage(session.languageSeconds);
   }
 
   private buildRawEvent(

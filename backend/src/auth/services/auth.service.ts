@@ -1,6 +1,4 @@
 import { randomInt, timingSafeEqual } from 'node:crypto';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
 import {
   BadRequestException,
@@ -8,7 +6,6 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -41,6 +38,8 @@ import {
   SignupCodeRecord,
   SignupTokenPayload,
 } from '../interfaces/auth-internal.interface';
+
+import { DisposableEmailService } from './disposable-email.service';
 
 const CODE_EXPIRY_MINUTES = 10;
 const CODE_EXPIRY_SECONDS = CODE_EXPIRY_MINUTES * 60;
@@ -84,9 +83,8 @@ const isSignupTokenPayload = (value: unknown): value is SignupTokenPayload =>
   typeof value.displayName === 'string';
 
 @Injectable()
-export class AuthService implements OnModuleInit {
+export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private disposableDomains = new Set<string>();
 
   constructor(
     private readonly usersService: UsersService,
@@ -95,11 +93,8 @@ export class AuthService implements OnModuleInit {
     private readonly dataSource: DataSource,
     @Inject(VERIFICATION_MAILER)
     private readonly verificationMailer: VerificationMailer,
+    private readonly disposableEmails: DisposableEmailService,
   ) {}
-
-  public async onModuleInit(): Promise<void> {
-    await this.loadDisposableDomains();
-  }
 
   public async signupBegin(dto: BeginSignupRequestDto): Promise<MessageResponseDto> {
     const { displayName } = dto;
@@ -107,7 +102,7 @@ export class AuthService implements OnModuleInit {
 
     this.logger.log(`Starting signup process for email: ${email}`);
 
-    if (this.isDisposableEmail(email)) {
+    if (this.disposableEmails.contains(email)) {
       this.logger.warn(`Signup attempt with disposable email: ${email}`);
       return { message: SIGNUP_SUCCESS_MESSAGE };
     }
@@ -402,30 +397,5 @@ export class AuthService implements OnModuleInit {
       reservedUsernames.includes(normalized) ||
       bannedWords.some((word) => normalized.includes(word))
     );
-  }
-
-  private async loadDisposableDomains(): Promise<void> {
-    try {
-      const filePath = path.join(process.cwd(), 'disposable_emails.txt');
-      const disposableEmailsText = await fs.readFile(filePath, 'utf8');
-      const domains = disposableEmailsText
-        .split('\n')
-        .map((line) => line.trim().toLowerCase())
-        .filter((line) => line.length > 0 && !line.startsWith('#'));
-
-      this.disposableDomains = new Set(domains);
-      this.logger.log(`Loaded ${String(this.disposableDomains.size)} disposable email domains.`);
-    } catch (error) {
-      this.logger.warn(
-        'Could not load disposable email domains. Proceeding without checks.',
-        String(error),
-      );
-    }
-  }
-
-  private isDisposableEmail(email: string): boolean {
-    const atIndex = email.lastIndexOf('@');
-    if (atIndex === -1) return false;
-    return this.disposableDomains.has(email.slice(atIndex + 1).toLowerCase());
   }
 }

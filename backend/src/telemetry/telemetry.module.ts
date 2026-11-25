@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { TelemetryController } from './controllers/telemetry.controller';
 import { WorkSession } from './entities/work-session.entity';
 import { TelemetryQueue } from './queue/telemetry.queue';
+import { WorkSessionAccumulator } from './services/work-session-accumulator.service';
 import { TelemetryWorker } from './telemetry.worker';
 
 @Module({
@@ -18,7 +19,7 @@ import { TelemetryWorker } from './telemetry.worker';
     forwardRef(() => AnalyticsModule),
   ],
   controllers: [TelemetryController],
-  providers: [TelemetryQueue, TelemetryWorker],
+  providers: [TelemetryQueue, TelemetryWorker, WorkSessionAccumulator],
   exports: [TelemetryQueue],
 })
 export class TelemetryModule {}
