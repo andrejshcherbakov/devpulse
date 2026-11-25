@@ -11,6 +11,7 @@ import { User } from '../users/entities/user.entity';
 import { AnalyticsController } from './controllers/analytics.controller';
 import { IntegrationsAnalyticsController } from './controllers/integrations-analytics.controller';
 import { CsvExportFormatterService } from './formatters/csv-export-formatter.service';
+import { EXPORT_FORMATTER } from './interfaces/export-formatter.interface';
 import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsExportService } from './services/analytics-export.service';
 import { IntegrationsAnalyticsService } from './services/integrations-analytics.service';
@@ -24,7 +25,7 @@ import { IntegrationsAnalyticsService } from './services/integrations-analytics.
   controllers: [AnalyticsController, IntegrationsAnalyticsController],
   providers: [
     AnalyticsService,
-    CsvExportFormatterService,
+    { provide: EXPORT_FORMATTER, useClass: CsvExportFormatterService },
     AnalyticsExportService,
     IntegrationsAnalyticsService,
     ProjectsService,

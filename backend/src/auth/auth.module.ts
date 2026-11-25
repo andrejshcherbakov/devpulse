@@ -10,6 +10,7 @@ import { UsersModule } from '../users/users.module';
 
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
+import { DisposableEmailService } from './services/disposable-email.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, DisposableEmailService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
